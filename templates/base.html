@@ -693,11 +693,12 @@
                     <p><a href="{% url 'menu:menu_list' %}" style="color: #CCCCCC; text-decoration: none;">Меню</a></p>
                     <p><a href="{% url 'core:gallery' %}" style="color: #CCCCCC; text-decoration: none;">Галерея</a></p>
                     <p><a href="{% url 'orders:cart' %}" style="color: #CCCCCC; text-decoration: none;">Корзина</a></p>
+                    <p><a href="{% url 'core:privacy_policy' %}" style="color: #CCCCCC; text-decoration: none;">Политика конфиденциальности</a></p>
                 </div>
                 <div class="footer-info">
                     <h3>Контакты</h3>
                     <p>Батайск, ул. Белорусская, 113</p>
-                    <p>+7 (919) 894-86-88</p>
+                    <p>+7 (928) 601-00-60</p>
                     <!-- <p>info@merkyri.ru</p> -->
                 </div>
                 <div class="footer-info">
@@ -964,6 +965,152 @@
         });
     </script>
     
+        <!-- Баннер cookies -->
+        <div id="cookieBanner" class="cookie-banner" style="display: none;">
+            <div class="cookie-container">
+                <div class="cookie-text">
+                    <p>🍪 Мы используем cookies для улучшения работы сайта, анализа трафика и персонализации. Продолжая использовать сайт, вы соглашаетесь с <a href="/privacy-policy/" target="_blank">политикой обработки данных</a>.</p>
+                </div>
+                <div class="cookie-buttons">
+                    <button id="acceptCookies" class="cookie-btn cookie-accept">Принять</button>
+                    <button id="declineCookies" class="cookie-btn cookie-decline">Отклонить</button>
+                </div>
+            </div>
+        </div>
+
+        <style>
+        /* Стили для баннера cookies */
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 15px 20px;
+            z-index: 10000;
+            border-top: 3px solid #B8860B;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+            font-family: inherit;
+        }
+
+        .cookie-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cookie-text {
+            flex: 1;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .cookie-text a {
+            color: #B8860B;
+            text-decoration: underline;
+        }
+
+        .cookie-text a:hover {
+            color: #d4a017;
+        }
+
+        .cookie-buttons {
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .cookie-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .cookie-accept {
+            background: #B8860B;
+            color: white;
+        }
+
+        .cookie-accept:hover {
+            background: #9a7009;
+            transform: translateY(-2px);
+        }
+
+        .cookie-decline {
+            background: #444;
+            color: white;
+        }
+
+        .cookie-decline:hover {
+            background: #555;
+        }
+
+        @media (max-width: 768px) {
+            .cookie-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            .cookie-buttons {
+                justify-content: center;
+            }
+            .cookie-text {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .cookie-banner {
+                padding: 12px 15px;
+            }
+            .cookie-btn {
+                padding: 6px 16px;
+                font-size: 0.8rem;
+            }
+        }
+        </style>
+
+        <script>
+        // Функция для проверки согласия
+        function checkCookieConsent() {
+            const consent = localStorage.getItem('cookieConsent');
+            if (!consent) {
+                document.getElementById('cookieBanner').style.display = 'block';
+            }
+        }
+
+        // Функция принятия cookies
+        function acceptCookies() {
+            localStorage.setItem('cookieConsent', 'accepted');
+            document.getElementById('cookieBanner').style.display = 'none';
+            // Здесь можно включить аналитику, если добавите позже
+            console.log('Cookies accepted');
+        }
+
+        // Функция отклонения cookies
+        function declineCookies() {
+            localStorage.setItem('cookieConsent', 'declined');
+            document.getElementById('cookieBanner').style.display = 'none';
+            // Здесь можно отключить аналитику
+            console.log('Cookies declined');
+        }
+
+        // Назначаем обработчики после загрузки страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            checkCookieConsent();
+            document.getElementById('acceptCookies').addEventListener('click', acceptCookies);
+            document.getElementById('declineCookies').addEventListener('click', declineCookies);
+        });
+        </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

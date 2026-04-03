@@ -39,6 +39,10 @@ def contacts(request):
     """Страница контактов"""
     return render(request, 'core/contacts.html')
 
+def privacy_policy(request):
+    """Страница политики конфиденциальности"""
+    return render(request, 'privacy-policy.html')
+
 
 # def menu_page(request):
 #     """Страница меню"""

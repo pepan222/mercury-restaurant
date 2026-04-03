@@ -11,4 +11,5 @@ urlpatterns = [
     # path('bookings/', views.booking_page, name='booking'),
     # path('orders/cart/', views.cart_page, name='cart'),
     path('reviews/create/', views.create_review_ajax, name='create_review_ajax'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
 ]
