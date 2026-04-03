@@ -1,0 +1,185 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Добавить блюдо | Админ-панель Меркурий{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>🍽️ Добавление нового блюда</h2>
+    <a href="{% url 'dashboard:menu' %}{% if pre_selected_category %}#category-{{ pre_selected_category }}{% endif %}" class="btn btn-primary" id="backToMenuBtn">← Назад к меню</a>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <form method="post" enctype="multipart/form-data" id="addDishForm">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Категория *</label>
+            <select name="category_id" class="form-control" id="categorySelect" required>
+                <option value="">Выберите категорию</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if pre_selected_category|stringformat:"s" == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Подкатегория (необязательно)</label>
+            <select name="subcategory_id" class="form-control" id="subcategorySelect">
+                <option value="">-- Без подкатегории --</option>
+                {% for subcategory in subcategories %}
+                <option value="{{ subcategory.id }}" data-category="{{ subcategory.category.id }}">
+                    {{ subcategory.category.name }} → {{ subcategory.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <small style="color: #666;">Фильтруется по выбранной категории</small>
+        </div>
+
+        <div class="form-group">
+            <label>Фото блюда</label>
+            <input type="file" name="image" class="form-control" accept="image/*">
+            <small style="color: #666;">Загрузите фото блюда (jpg, png, webp)</small>
+        </div>
+        
+        <div class="form-group">
+            <label>Название блюда *</label>
+            <input type="text" name="name" class="form-control" id="nameInput" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Описание</label>
+            <textarea name="description" class="form-control" rows="3" id="descriptionInput"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Цена (₽) *</label>
+            <input type="text" name="price" class="form-control" id="priceInput" required placeholder="Например: 390 или 390.50">
+            <small style="color: #666;">Введите число (можно использовать запятую или точку, например: 390, 390.50, 390,50)</small>
+        </div>
+        
+        <div class="form-group">
+            <label>Вес</label>
+            <input type="text" name="weight" class="form-control" id="weightInput" placeholder="Пример: 350 г или 200/50 мл">
+            <small style="color: #666;">Можно указывать: 350 г, 200/50 мл, 300 г + соус 50 мл</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="{% url 'dashboard:menu' %}{% if pre_selected_category %}#category-{{ pre_selected_category }}{% endif %}" class="btn" style="background: #6c757d; color: white;" id="cancelBtn">Отмена</a>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelect = document.getElementById('categorySelect');
+        const subcategorySelect = document.getElementById('subcategorySelect');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        // Функция обновления ссылок с якорем
+        function updateBackLinks() {
+            const categoryId = categorySelect.value;
+            if (categoryId) {
+                const anchor = '#category-' + categoryId;
+                if (backToMenuBtn) backToMenuBtn.href = "{% url 'dashboard:menu' %}" + anchor;
+                if (cancelBtn) cancelBtn.href = "{% url 'dashboard:menu' %}" + anchor;
+            } else {
+                if (backToMenuBtn) backToMenuBtn.href = "{% url 'dashboard:menu' %}";
+                if (cancelBtn) cancelBtn.href = "{% url 'dashboard:menu' %}";
+            }
+        }
+        
+        // ========== ФИЛЬТРАЦИЯ ПОДКАТЕГОРИЙ ==========
+        function filterSubcategories() {
+            const categoryId = categorySelect.value;
+            
+            for (let option of subcategorySelect.options) {
+                if (option.value === '') continue;
+                const optionCategory = option.getAttribute('data-category');
+                if (optionCategory === categoryId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+            subcategorySelect.value = '';
+            
+            // Обновляем ссылки при изменении категории
+            updateBackLinks();
+        }
+        
+        categorySelect.addEventListener('change', filterSubcategories);
+        
+        // Инициализация
+        filterSubcategories();
+        
+        // ========== ОБРАБОТКА ЦЕНЫ ==========
+        const priceInput = document.getElementById('priceInput');
+        const form = document.getElementById('addDishForm');
+        
+        function formatPrice(value) {
+            if (!value) return '';
+            let formatted = value.replace(',', '.');
+            formatted = formatted.replace(/[^\d.]/g, '');
+            const parts = formatted.split('.');
+            if (parts.length > 2) {
+                formatted = parts[0] + '.' + parts.slice(1).join('');
+            }
+            if (parts.length > 1 && parts[1].length > 2) {
+                parts[1] = parts[1].substring(0, 2);
+                formatted = parts.join('.');
+            }
+            return formatted;
+        }
+        
+        if (priceInput) {
+            priceInput.addEventListener('blur', function() {
+                this.value = formatPrice(this.value);
+            });
+            
+            priceInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^\d.,]/g, '');
+            });
+        }
+        
+        // При отправке формы
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!categorySelect.value) {
+                    e.preventDefault();
+                    alert('Выберите категорию');
+                    categorySelect.focus();
+                    return false;
+                }
+                
+                const nameInput = document.getElementById('nameInput');
+                if (!nameInput.value.trim()) {
+                    e.preventDefault();
+                    alert('Введите название блюда');
+                    nameInput.focus();
+                    return false;
+                }
+                
+                let priceValue = priceInput.value.trim();
+                if (!priceValue) {
+                    e.preventDefault();
+                    alert('Введите цену');
+                    priceInput.focus();
+                    return false;
+                }
+                
+                priceValue = formatPrice(priceValue);
+                if (!priceValue || isNaN(parseFloat(priceValue))) {
+                    e.preventDefault();
+                    alert('Введите корректную цену (например: 390 или 390.50)');
+                    priceInput.focus();
+                    return false;
+                }
+                
+                priceInput.value = priceValue;
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Очное бронирование | Админ-панель Меркурий{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>➕ Очное бронирование столика</h2>
+    <a href="{% url 'dashboard:bookings' %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-info">
+            <strong>👤 Клиент:</strong> Очный клиент (будет создан автоматически)
+        </div>
+        
+        <form method="post" id="bookingForm">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="reservation_date">Дата *</label>
+                        <input type="date" name="reservation_date" id="reservation_date" class="form-control" value="{{ today }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="reservation_time">Время *</label>
+                        <input type="time" name="reservation_time" id="reservation_time" class="form-control" value="{{ default_time }}" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="guest_count">Количество гостей *</label>
+                        <select name="guest_count" id="guest_count" class="form-control" required>
+                            <option value="1">1 гость</option>
+                            <option value="2" selected>2 гостя</option>
+                            <option value="3">3 гостя</option>
+                            <option value="4">4 гостя</option>
+                            <option value="5">5 гостей</option>
+                            <option value="6">6 гостей</option>
+                            <option value="7">7 гостей</option>
+                            <option value="8">8 гостей</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="status">Статус *</label>
+                        <select name="status" id="status" class="form-control" required>
+                            <option value="pending">Ожидает</option>
+                            <option value="confirmed" selected>Подтверждено</option>
+                            <option value="completed">Завершено</option>
+                            <option value="cancelled">Отменено</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="table_id">Стол *</label>
+                <select name="table_id" id="table_id" class="form-control" required>
+                    <option value="">Сначала выберите дату, время и количество гостей</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="comment">Комментарий</label>
+                <textarea name="comment" id="comment" class="form-control" rows="3" placeholder="Особые пожелания, день рождения и т.д."></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Забронировать</button>
+                <a href="{% url 'dashboard:bookings' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Функция для получения текущего времени в формате HH:MM
+    function getCurrentTime() {
+        const now = new Date();
+        return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
+    
+    // Функция для загрузки доступных столов
+    function loadAvailableTables() {
+        const dateInput = document.getElementById('reservation_date');
+        const timeInput = document.getElementById('reservation_time');
+        const guestCount = document.getElementById('guest_count');
+        const tableSelect = document.getElementById('table_id');
+        
+        if (!dateInput.value || !timeInput.value) {
+            tableSelect.innerHTML = '<option value="">Сначала выберите дату и время</option>';
+            tableSelect.disabled = true;
+            return;
+        }
+        
+        if (!guestCount.value) {
+            tableSelect.innerHTML = '<option value="">Сначала выберите количество гостей</option>';
+            tableSelect.disabled = true;
+            return;
+        }
+        
+        tableSelect.innerHTML = '<option value="">Загрузка столов...</option>';
+        tableSelect.disabled = true;
+        
+        fetch(`/dashboard/api/available-tables/?date=${dateInput.value}&time=${timeInput.value}&guests=${guestCount.value}`)
+            .then(response => response.json())
+            .then(data => {
+                tableSelect.disabled = false;
+                
+                if (data.error) {
+                    tableSelect.innerHTML = `<option value="">${data.error}</option>`;
+                    return;
+                }
+                
+                if (data.tables && data.tables.length > 0) {
+                    let options = '<option value="">Выберите стол</option>';
+                    data.tables.forEach(table => {
+                        options += `<option value="${table.id}">Стол №${table.number} (${table.seats} мест) - ${table.location || 'Зал'}</option>`;
+                    });
+                    tableSelect.innerHTML = options;
+                } else {
+                    tableSelect.innerHTML = '<option value="">Нет свободных столов на выбранное время и количество гостей</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                tableSelect.disabled = false;
+                tableSelect.innerHTML = '<option value="">Ошибка загрузки столов</option>';
+            });
+    }
+    
+    // Устанавливаем минимальную дату - сегодня и корректируем время для сегодняшней даты
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('reservation_date');
+        const timeInput = document.getElementById('reservation_time');
+        const guestCount = document.getElementById('guest_count');
+        
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+        
+        // Если дата сегодня, проверяем, чтобы время не было в прошлом
+        dateInput.addEventListener('change', function() {
+            if (dateInput.value === today) {
+                const currentTime = getCurrentTime();
+                if (timeInput.value < currentTime) {
+                    timeInput.value = currentTime;
+                }
+            }
+            loadAvailableTables();
+        });
+        
+        // При загрузке страницы, если дата сегодня и время в прошлом, корректируем
+        if (dateInput.value === today) {
+            const currentTime = getCurrentTime();
+            if (timeInput.value < currentTime) {
+                timeInput.value = currentTime;
+            }
+        }
+        
+        dateInput.addEventListener('change', loadAvailableTables);
+        timeInput.addEventListener('change', loadAvailableTables);
+        guestCount.addEventListener('change', loadAvailableTables);
+        
+        // Если дата, время и количество гостей уже заполнены, загружаем столы
+        if (dateInput.value && timeInput.value && guestCount.value) {
+            loadAvailableTables();
+        }
+    });
+</script>
+
+<style>
+    .alert-info {
+        background: #e3f2fd;
+        color: #2196f3;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        border-left: 3px solid #2196f3;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .form-actions .btn {
+        flex: 1;
+    }
+</style>
+{% endblock %}

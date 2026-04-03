@@ -1,0 +1,1511 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Меню | Ресторан Меркурий{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Переопределяем стили модального окна авторизации для страницы меню */
+    .modal {
+        background: rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(3px) !important;
+    }
+    
+    .modal .modal-overlay {
+        background: transparent !important;
+    }
+    
+    /* Стили для модального окна блюда - с таким же затемнением */
+    .dish-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(3px) !important;
+    }
+    
+    .dish-modal.active {
+        display: flex;
+    }
+    
+    .dish-modal .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent !important;
+        cursor: pointer;
+    }
+    
+    .dish-modal .modal-container {
+        position: relative;
+        width: 90%;
+        max-width: 550px;
+        max-height: 90vh;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        animation: modalFadeIn 0.3s ease;
+        z-index: 10;
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .dish-modal .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.3s ease;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .dish-modal .modal-close:hover {
+        background: #800020;
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    .dish-modal .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .dish-modal .modal-loader {
+        text-align: center;
+        padding: 60px;
+        color: #666;
+    }
+    
+    /* Карточка блюда в модалке */
+    .dish-modal-card {
+        padding: 0;
+    }
+    
+    .dish-modal-image {
+        width: 100%;
+        height: 280px;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    .dish-modal-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .dish-modal-info {
+        padding: 25px;
+    }
+    
+    .dish-modal-category {
+        display: inline-block;
+        background: #f5f5f5;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: #B8860B;
+        margin-bottom: 12px;
+    }
+    
+    .dish-modal-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .dish-modal-desc {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+    }
+    
+    .dish-modal-meta {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .dish-modal-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .dish-modal-meta-item span:first-child {
+        font-size: 1.1rem;
+    }
+    
+    .dish-modal-price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #800020;
+        margin-bottom: 20px;
+    }
+    
+    /* Счетчик в модальном окне */
+    .modal-quantity-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .modal-qty-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #B8860B;
+        color: white;
+        border: none;
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+    
+    .modal-qty-btn:hover {
+        background: #9a7009;
+        transform: scale(1.05);
+    }
+    
+    .modal-qty-value {
+        font-size: 1.4rem;
+        font-weight: 600;
+        min-width: 50px;
+        text-align: center;
+    }
+    
+    .dish-modal-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 10px;
+    }
+    
+    .dish-modal-actions .btn {
+        flex: 1;
+        text-align: center;
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+    
+    /* Адаптивность для модального окна */
+    @media (max-width: 480px) {
+        .dish-modal .modal-container {
+            width: 95%;
+            max-width: 95%;
+            border-radius: 16px;
+        }
+        
+        .dish-modal-image {
+            height: 180px;
+        }
+        
+        .dish-modal-info {
+            padding: 18px;
+        }
+        
+        .dish-modal-title {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+        
+        .dish-modal-desc {
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+        
+        .dish-modal-meta {
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+        }
+        
+        .dish-modal-meta-item {
+            font-size: 0.8rem;
+        }
+        
+        .dish-modal-price {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .modal-qty-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .dish-modal-actions {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .dish-modal-actions .btn {
+            width: 100%;
+            text-align: center;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .dish-modal .modal-close {
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            font-size: 18px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 style="margin-bottom: 30px;">Наше меню</h1>
+        
+        <!-- ОТДЕЛЬНЫЙ ФИЛЬТР ПО ПОДКАТЕГОРИЯМ -->
+        <div class="filters-section subcategory-filter">
+            <h3>Поиск (первые блюда, гарниры, роллы и т.д.)</h3>
+            <form method="get" class="filters-form" id="subcategoryFilterForm">
+                <div class="filter-group">
+                    <label>Выберите:</label>
+                    <select name="subcategory" class="filter-select" id="subcategorySelect">
+                        <option value="">Все</option>
+                        {% for sub in unique_subcategories %}
+                        <option value="{{ sub.id }}" {% if selected_subcategory_id|stringformat:"s" == sub.id|stringformat:"s" %}selected{% endif %}>
+                            {{ sub.name }}
+                            <small>({% for cat in sub.categories %}{{ cat }}{% if not forloop.last %}, {% endif %}{% endfor %})</small>
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">Применить</button>
+                    {% if selected_subcategory_id %}
+                    <a href="{% url 'menu:menu_list' %}" class="btn btn-secondary">Сбросить</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+        
+        {% if is_filtered_by_subcategory %}
+        <!-- РЕЖИМ ПЛОСКОГО СПИСКА (без группировки по категориям) -->
+        <div class="flat-dishes-section">
+            <h2 class="section-title">Блюда из подкатегории "{{ selected_subcategory_name }}"</h2>
+            <div class="menu-list flat">
+                {% for dish in flat_dishes %}
+                <div class="menu-item" data-dish-id="{{ dish.id }}" onclick="openDishModal(this.getAttribute('data-dish-id'))">
+                    <div class="menu-item-image">
+                        {% if dish.image %}
+                        <img src="{{ dish.image.url }}" alt="{{ dish.name }}" loading="lazy">
+                        {% else %}
+                        <div class="placeholder-logo">
+                            <img src="{% static 'images/logo.png' %}" alt="Меркурий">
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="menu-item-info">
+                        <h4>{{ dish.name }}</h4>
+                        <div class="menu-item-desc">{{ dish.description|default:"Описание отсутствует"|truncatechars:80 }}</div>
+                        <div class="menu-item-meta">
+                            <span class="menu-item-category">{{ dish.category.name }}</span>
+                            {% if dish.weight %}
+                            <span class="menu-item-weight">Порция: {{ dish.weight }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="menu-item-price">{{ dish.price }}₽</div>
+                    <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                </div>
+                {% empty %}
+                <div class="empty-menu">
+                    <p>В этой подкатегории пока нет блюд</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% elif categories_data %}
+        <!-- ОБЫЧНЫЙ РЕЖИМ (группировка по категориям) -->
+        <div class="category-tabs">
+            {% for cat in categories_data %}
+            <button class="category-tab {% if forloop.first %}active{% endif %}" data-category="{{ cat.id }}">
+                {{ cat.name }}
+            </button>
+            {% endfor %}
+        </div>
+        
+        {% for cat in categories_data %}
+        <div class="category-content" data-category="{{ cat.id }}" style="{% if not forloop.first %}display: none;{% endif %}">
+            
+            {% if cat.has_subcategories %}
+            <!-- Подкатегории: на десктопе - кнопки, на планшетах и мобильных - выпадающий список -->
+            <div class="subcategory-desktop">
+                <div class="subcategory-tabs">
+                    <button class="subcategory-tab active" data-subcategory="all">Все</button>
+                    {% for sub in cat.subcategories %}
+                    <button class="subcategory-tab" data-subcategory="{{ sub.id }}">
+                        {{ sub.name }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="subcategory-mobile">
+                <select class="subcategory-select-mobile" data-category="{{ cat.id }}">
+                    <option value="all">Все</option>
+                    {% for sub in cat.subcategories %}
+                    <option value="{{ sub.id }}">{{ sub.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            <div class="menu-list">
+                {% if cat.dishes_without %}
+                <div class="menu-category" data-subcategory="none">
+                    <div class="subcategory-title">Блюда</div>
+                    {% for dish in cat.dishes_without %}
+                    <div class="menu-item" data-dish-id="{{ dish.id }}" onclick="openDishModal(this.getAttribute('data-dish-id'))">
+                        <div class="menu-item-image">
+                            {% if dish.image %}
+                            <img src="{{ dish.image.url }}" alt="{{ dish.name }}" loading="lazy">
+                            {% else %}
+                            <div class="placeholder-logo">
+                                <img src="{% static 'images/logo.png' %}" alt="Меркурий">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="menu-item-info">
+                            <h4>{{ dish.name }}</h4>
+                            <div class="menu-item-desc">{{ dish.description|default:"Описание отсутствует"|truncatechars:70 }}</div>
+                            {% if dish.weight %}
+                            <div class="menu-item-weight">Порция: {{ dish.weight }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="menu-item-price">{{ dish.price }}₽</div>
+                        <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% for sub in cat.subcategories %}
+                <div class="menu-category" data-subcategory="{{ sub.id }}" style="display: none;">
+                    <div class="subcategory-title">{{ sub.name }}</div>
+                    {% for dish in sub.dishes %}
+                    <div class="menu-item" data-dish-id="{{ dish.id }}" onclick="openDishModal(this.getAttribute('data-dish-id'))">
+                        <div class="menu-item-image">
+                            {% if dish.image %}
+                            <img src="{{ dish.image.url }}" alt="{{ dish.name }}" loading="lazy">
+                            {% else %}
+                            <div class="placeholder-logo">
+                                <img src="{% static 'images/logo.png' %}" alt="Меркурий">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="menu-item-info">
+                            <h4>{{ dish.name }}</h4>
+                            <div class="menu-item-desc">{{ dish.description|default:"Описание отсутствует"|truncatechars:70 }}</div>
+                            {% if dish.weight %}
+                            <div class="menu-item-weight">Порция: {{ dish.weight }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="menu-item-price">{{ dish.price }}₽</div>
+                        <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% else %}
+        <div class="empty-menu">
+            <p>По выбранным фильтрам блюд не найдено</p>
+            <a href="{% url 'menu:menu_list' %}" class="btn btn-primary">Показать все блюда</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+/* Базовые стили для страницы меню */
+* {
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Фильтр по подкатегориям */
+.subcategory-filter {
+    background: linear-gradient(135deg, #fff8f0 0%, #fff 100%);
+    border: 1px solid #e8e0d0;
+    margin-bottom: 40px;
+}
+
+.subcategory-filter h3 {
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #800020;
+    font-weight: 600;
+}
+
+.filters-section {
+    background: #f9f9f9;
+    padding: 20px 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filters-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 2;
+    min-width: 250px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-select:hover {
+    border-color: #B8860B;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #B8860B;
+    box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.1);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+/* Плоский список */
+.flat-dishes-section {
+    margin-top: 20px;
+}
+
+.flat-dishes-section .section-title {
+    font-size: 1.5rem;
+    color: #800020;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #B8860B;
+    display: inline-block;
+}
+
+.menu-list.flat .menu-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+}
+
+.menu-item-meta {
+    display: flex;
+    gap: 15px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+}
+
+.menu-item-category {
+    font-size: 0.75rem;
+    color: #B8860B;
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+/* Стили для фото */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px dashed #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.menu-item:hover {
+    background: #fafafa;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-item-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Стили для заглушки (логотип) */
+.placeholder-logo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+}
+
+.placeholder-logo img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    opacity: 0.8;
+}
+
+.menu-item-info {
+    flex: 1;
+    cursor: pointer;
+}
+
+.menu-item-info h4 {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.menu-item-desc {
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.menu-item-weight {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 5px;
+}
+
+.menu-item-price {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #800020;
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: right;
+}
+
+.add-to-cart-btn {
+    padding: 8px 16px;
+    background: #B8860B;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-block;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.add-to-cart-btn:hover {
+    background: #9a7009;
+    transform: translateY(-2px);
+}
+
+/* Кнопки */
+.btn-primary {
+    background: #B8860B;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background: #9a7009;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* Обычный режим */
+.category-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+    justify-content: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.category-tab {
+    padding: 10px 25px;
+    background: transparent;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s;
+    color: #666;
+}
+
+.category-tab:hover {
+    color: #B8860B;
+}
+
+.category-tab.active {
+    background: #800020;
+    color: white;
+}
+
+/* Подкатегории */
+.subcategory-desktop {
+    display: block;
+}
+
+.subcategory-mobile {
+    display: none;
+}
+
+.subcategory-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 30px;
+    justify-content: center;
+}
+
+.subcategory-tab {
+    padding: 6px 16px;
+    background: #f5f5f5;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    color: #666;
+}
+
+.subcategory-tab:hover {
+    background: #e0e0e0;
+}
+
+.subcategory-tab.active {
+    background: #B8860B;
+    color: white;
+}
+
+.subcategory-select-mobile {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.subcategory-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #800020;
+    margin: 20px 0 15px;
+    padding-left: 10px;
+    border-left: 4px solid #B8860B;
+}
+
+.menu-list {
+    max-width: 100%;
+}
+
+.empty-menu {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f9f9f9;
+    border-radius: 12px;
+}
+
+.empty-menu p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
+
+/* Планшеты и мобильные (1000px и меньше) - выпадающий список для подкатегорий */
+@media (max-width: 1000px) {
+    .subcategory-desktop {
+        display: none;
+    }
+    
+    .subcategory-mobile {
+        display: block;
+    }
+    
+    .subcategory-select-mobile {
+        margin-bottom: 20px;
+    }
+}
+
+/* Планшеты (768px - 1000px) - адаптация блюд */
+@media (min-width: 768px) and (max-width: 1000px) {
+    .container {
+        padding: 0 20px;
+        width: 100%;
+    }
+    
+    .menu-item {
+        gap: 15px;
+    }
+    
+    .menu-item-image {
+        width: 75px;
+        height: 75px;
+        flex-shrink: 0;
+    }
+    
+    .menu-item-info {
+        flex: 1;
+    }
+    
+    .menu-item-info h4 {
+        font-size: 1rem;
+    }
+    
+    .menu-item-desc {
+        font-size: 0.8rem;
+    }
+    
+    .menu-item-price {
+        font-size: 1rem;
+        min-width: 70px;
+        flex-shrink: 0;
+    }
+    
+    .category-tabs {
+        gap: 8px;
+    }
+    
+    .category-tab {
+        padding: 8px 18px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Мобильные телефоны (768px и меньше) */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .filters-section {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .filters-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .filter-group {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .filter-group label {
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+    }
+    
+    .filter-select {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .filter-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .filter-actions .btn,
+    .filter-actions .btn-secondary {
+        width: 100%;
+        text-align: center;
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+    
+    .category-tabs {
+        gap: 6px;
+        margin-bottom: 20px;
+        padding-bottom: 8px;
+    }
+    
+    .category-tab {
+        padding: 5px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .subcategory-select-mobile {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+    }
+    
+    .subcategory-title {
+        font-size: 1rem;
+        margin: 15px 0 12px;
+        padding-left: 8px;
+    }
+    
+    .menu-item {
+        gap: 12px;
+        padding: 12px 0;
+        flex-wrap: wrap;
+    }
+    
+    .menu-item-image {
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
+    }
+    
+    .menu-item-info {
+        flex: 1;
+        min-width: calc(100% - 82px);
+    }
+    
+    .menu-item-info h4 {
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+    }
+    
+    .menu-item-desc {
+        font-size: 0.7rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .menu-item-weight {
+        font-size: 0.65rem;
+        margin-top: 3px;
+    }
+    
+    .menu-item-price {
+        font-size: 0.95rem;
+        margin-top: 5px;
+        text-align: left;
+        white-space: normal;
+        display: inline-block;
+        min-width: auto;
+    }
+    
+    .menu-item-meta {
+        gap: 6px;
+        margin-top: 4px;
+    }
+    
+    .menu-item-category {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+    }
+}
+
+/* Очень маленькие телефоны (380px и меньше) */
+@media (max-width: 380px) {
+    .container {
+        padding: 0 12px;
+    }
+    
+    h1 {
+        font-size: 1.4rem !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+    
+    .filters-section {
+        padding: 10px;
+    }
+    
+    .subcategory-filter h3 {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    
+    .filter-group label {
+        font-size: 0.65rem;
+    }
+    
+    .filter-select {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .filter-actions .btn,
+    .filter-actions .btn-secondary {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+    
+    .category-tab {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .subcategory-select-mobile {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .subcategory-title {
+        font-size: 0.9rem;
+        margin: 10px 0 8px;
+    }
+    
+    .menu-item-image {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .menu-item-info {
+        min-width: calc(100% - 72px);
+    }
+    
+    .menu-item-info h4 {
+        font-size: 0.85rem;
+    }
+    
+    .menu-item-desc {
+        font-size: 0.65rem;
+    }
+    
+    .menu-item-weight {
+        font-size: 0.6rem;
+    }
+    
+    .menu-item-price {
+        font-size: 0.85rem;
+    }
+    
+    .menu-item-category {
+        font-size: 0.55rem;
+        padding: 1px 4px;
+    }
+}
+
+/* Очень маленькие экраны (320px) */
+@media (max-width: 340px) {
+    .container {
+        padding: 0 10px;
+    }
+    
+    .menu-item-image {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .menu-item-info {
+        min-width: calc(100% - 67px);
+    }
+    
+    .menu-item-info h4 {
+        font-size: 0.8rem;
+    }
+    
+    .menu-item-desc {
+        font-size: 0.6rem;
+    }
+    
+    .menu-item-price {
+        font-size: 0.8rem;
+    }
+}
+</style>
+
+<script>
+// Функция для получения CSRF-токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Проверка авторизации через API
+function checkAuth() {
+    return fetch('/orders/api/cart/count/')
+        .then(response => {
+            if (response.redirected && response.url.includes('/login/')) {
+                return false;
+            }
+            if (response.status === 403 || response.status === 401) {
+                return false;
+            }
+            return response.json().then(data => true).catch(() => false);
+        })
+        .catch(() => false);
+}
+
+// Обработчик добавления в корзину
+function handleAddToCart(btn, dishId, quantity) {
+    const dishName = btn.getAttribute('data-name');
+    
+    checkAuth().then(isAuthenticated => {
+        if (!isAuthenticated) {
+            window.openModal('login');
+            return;
+        }
+        addToCartAjax(btn, dishId, quantity);
+    });
+}
+
+// AJAX добавление в корзину
+function addToCartAjax(btn, dishId, quantity) {
+    const dishName = btn.getAttribute('data-name');
+    
+    fetch(`/orders/cart/add/${dishId}/?quantity=${quantity}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showNotification(`🍽️ ${dishName} добавлен в корзину (${quantity} шт.)`);
+            if (typeof updateCartCounter === 'function') {
+                updateCartCounter();
+            }
+        } else {
+            showNotification(`Ошибка: ${data.message}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        showNotification('Ошибка при добавлении в корзину', 'error');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Переключение категорий
+    const categoryTabs = document.querySelectorAll('.category-tab');
+    const categoryContents = document.querySelectorAll('.category-content');
+    
+    if (categoryTabs.length > 0 && categoryContents.length > 0) {
+        function switchCategory(categoryId) {
+            categoryContents.forEach(content => {
+                content.style.display = content.getAttribute('data-category') === categoryId ? 'block' : 'none';
+            });
+            
+            const activeContent = document.querySelector(`.category-content[data-category="${categoryId}"]`);
+            if (activeContent) {
+                const allSubBtn = activeContent.querySelector('.subcategory-tab[data-subcategory="all"]');
+                if (allSubBtn) allSubBtn.click();
+                const mobileSelect = activeContent.querySelector('.subcategory-select-mobile');
+                if (mobileSelect) {
+                    mobileSelect.value = 'all';
+                    const event = new Event('change');
+                    mobileSelect.dispatchEvent(event);
+                }
+            }
+        }
+        
+        categoryTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const categoryId = this.getAttribute('data-category');
+                categoryTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                switchCategory(categoryId);
+            });
+        });
+        
+        const firstTab = document.querySelector('.category-tab');
+        if (firstTab) firstTab.click();
+    }
+    
+    // Переключение подкатегорий на десктопе
+    function bindSubcategoryEvents() {
+        document.querySelectorAll('.subcategory-tab').forEach(tab => {
+            const newTab = tab.cloneNode(true);
+            tab.parentNode.replaceChild(newTab, tab);
+            
+            newTab.addEventListener('click', function(e) {
+                e.preventDefault();
+                const subId = this.getAttribute('data-subcategory');
+                const container = this.closest('.category-content');
+                const categories = container.querySelectorAll('.menu-category');
+                
+                container.querySelectorAll('.subcategory-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const mobileSelect = container.querySelector('.subcategory-select-mobile');
+                if (mobileSelect) mobileSelect.value = subId;
+                
+                categories.forEach(cat => {
+                    const catSubId = cat.getAttribute('data-subcategory');
+                    cat.style.display = (subId === 'all' || catSubId === subId) ? 'block' : 'none';
+                });
+            });
+        });
+    }
+    
+    // Переключение подкатегорий на мобильных
+    function bindMobileSubcategoryEvents() {
+        document.querySelectorAll('.subcategory-select-mobile').forEach(select => {
+            const newSelect = select.cloneNode(true);
+            select.parentNode.replaceChild(newSelect, select);
+            
+            newSelect.addEventListener('change', function() {
+                const subId = this.value;
+                const container = this.closest('.category-content');
+                const categories = container.querySelectorAll('.menu-category');
+                
+                const desktopTabs = container.querySelectorAll('.subcategory-tab');
+                desktopTabs.forEach(tab => {
+                    if (tab.getAttribute('data-subcategory') === subId) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+                
+                categories.forEach(cat => {
+                    const catSubId = cat.getAttribute('data-subcategory');
+                    cat.style.display = (subId === 'all' || catSubId === subId) ? 'block' : 'none';
+                });
+            });
+        });
+    }
+    
+    bindSubcategoryEvents();
+    bindMobileSubcategoryEvents();
+    
+    // Автоматическая отправка формы
+    const subcategorySelect = document.getElementById('subcategorySelect');
+    if (subcategorySelect) {
+        subcategorySelect.addEventListener('change', function() {
+            document.getElementById('subcategoryFilterForm').submit();
+        });
+    }
+    
+    // Модальное окно блюда
+    const modal = document.getElementById('dishModal');
+    const closeBtn = modal ? modal.querySelector('.modal-close') : null;
+    const overlay = modal ? modal.querySelector('.modal-overlay') : null;
+    
+    window.closeDishModal = function() {
+        if (modal) modal.classList.remove('active');
+    }
+    
+    window.openDishModal = function(dishId) {
+        if (!modal) return;
+        
+        const modalContent = document.getElementById('modalContent');
+        modal.classList.add('active');
+        modalContent.innerHTML = '<div class="modal-loader">Загрузка...</div>';
+        
+        fetch(`/menu/dish/${dishId}/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(dish => {
+            modalContent.innerHTML = `
+                <div class="dish-modal-card">
+                    <div class="dish-modal-image">
+                        <img src="${dish.image_url}" alt="${dish.name}" loading="lazy">
+                    </div>
+                    <div class="dish-modal-info">
+                        <div class="dish-modal-category">${dish.category}${dish.subcategory ? ` / ${dish.subcategory}` : ''}</div>
+                        <h2 class="dish-modal-title">${dish.name}</h2>
+                        <p class="dish-modal-desc">${dish.description}</p>
+                        <div class="dish-modal-meta">
+                            <div class="dish-modal-meta-item">
+                                <span>⚖️</span>
+                                <span>${dish.weight}</span>
+                            </div>
+                        </div>
+                        <div class="dish-modal-price">${dish.price} ₽</div>
+                        <div class="modal-quantity-control">
+                            <button class="modal-qty-btn modal-qty-minus" data-id="${dish.id}">−</button>
+                            <span class="modal-qty-value" id="modal-qty-${dish.id}">1</span>
+                            <button class="modal-qty-btn modal-qty-plus" data-id="${dish.id}">+</button>
+                        </div>
+                        <div class="dish-modal-actions">
+                            <button class="btn btn-primary add-to-cart-modal" data-id="${dish.id}" data-name="${dish.name}">В корзину</button>
+                            <button class="btn btn-secondary close-modal-btn">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const closeModalBtn = modalContent.querySelector('.close-modal-btn');
+            if (closeModalBtn) closeModalBtn.addEventListener('click', window.closeDishModal);
+            
+            let currentQty = 1;
+            const qtySpan = document.getElementById(`modal-qty-${dish.id}`);
+            const minusBtn = modalContent.querySelector('.modal-qty-minus');
+            const plusBtn = modalContent.querySelector('.modal-qty-plus');
+            const addToCartBtn = modalContent.querySelector('.add-to-cart-modal');
+            
+            if (minusBtn) {
+                minusBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (currentQty > 1) {
+                        currentQty--;
+                        qtySpan.textContent = currentQty;
+                    }
+                });
+            }
+            
+            if (plusBtn) {
+                plusBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    currentQty++;
+                    qtySpan.textContent = currentQty;
+                });
+            }
+            
+            if (addToCartBtn) {
+                addToCartBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dishId = this.dataset.id;
+                    const dishName = this.dataset.name;
+                    
+                    checkAuth().then(isAuthenticated => {
+                        if (!isAuthenticated) {
+                            window.closeDishModal();
+                            window.openModal('login');
+                            return;
+                        }
+                        
+                        fetch(`/orders/cart/add/${dishId}/?quantity=${currentQty}`, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                showNotification(`🍽️ ${dishName} добавлен в корзину (${currentQty} шт.)`);
+                                if (typeof updateCartCounter === 'function') {
+                                    updateCartCounter();
+                                }
+                                setTimeout(() => window.closeDishModal(), 1000);
+                            } else {
+                                showNotification(`Ошибка: ${data.message}`, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Ошибка:', error);
+                            showNotification('Ошибка при добавлении в корзину', 'error');
+                        });
+                    });
+                });
+            }
+        })
+        .catch(error => {
+            modalContent.innerHTML = `
+                <div class="dish-modal-info" style="text-align: center; padding: 40px;">
+                    <p>Ошибка загрузки блюда</p>
+                    <button class="btn btn-secondary close-modal-btn">Закрыть</button>
+                </div>
+            `;
+            const closeModalBtn = modalContent.querySelector('.close-modal-btn');
+            if (closeModalBtn) closeModalBtn.addEventListener('click', window.closeDishModal);
+            console.error('Ошибка:', error);
+        });
+    }
+    
+    if (closeBtn) closeBtn.addEventListener('click', window.closeDishModal);
+    if (overlay) overlay.addEventListener('click', window.closeDishModal);
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (modal && modal.classList.contains('active')) {
+                window.closeDishModal();
+            }
+        }
+    });
+    
+    // Уведомления
+    window.showNotification = function(message, type = 'success') {
+        const oldNotifications = document.querySelectorAll('.custom-notification');
+        oldNotifications.forEach(notif => notif.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = 'custom-notification';
+        const bgColor = type === 'error' ? '#dc3545' : '#800020';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            font-size: 0.95rem;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 2000);
+    };
+    
+    // Стили для уведомлений
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+
+<!-- Модальное окно блюда -->
+<div class="dish-modal" id="dishModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-container">
+        <button class="modal-close"><span>&times;</span></button>
+        <div class="modal-content" id="modalContent">
+            <div class="modal-loader">Загрузка...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

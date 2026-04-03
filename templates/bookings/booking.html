@@ -1,0 +1,663 @@
+{% extends 'base.html' %}
+
+{% block title %}Бронирование столика | Ресторан Меркурий{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========== СТИЛИ ДЛЯ СТРАНИЦЫ БРОНИРОВАНИЯ ========== */
+    
+    .booking-page {
+        padding: 60px 0;
+    }
+    
+    .booking-container {
+        max-width: 700px;
+        margin: 0 auto;
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .booking-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .booking-header h1 {
+        margin-bottom: 15px;
+        font-size: 2rem;
+        color: var(--primary-burgundy);
+    }
+    
+    .booking-header p {
+        font-size: 1rem;
+        color: var(--text-light);
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .booking-card {
+        background: var(--white);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .booking-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .booking-body {
+        padding: 35px;
+    }
+    
+    .info-note {
+        background: #e3f2fd;
+        color: #2196f3;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+        border-left: 3px solid #2196f3;
+    }
+    
+    .info-note::before {
+        content: 'ℹ️ ';
+        margin-right: 5px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        background: var(--white);
+        box-sizing: border-box;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-gold);
+        box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.1);
+    }
+    
+    .form-control[readonly] {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+    
+    select.form-control {
+        cursor: pointer;
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+    
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    
+    .booking-footer {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-light);
+    }
+    
+    .booking-footer p {
+        margin-bottom: 15px;
+        color: var(--text-light);
+    }
+    
+    .booking-footer .phone {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-burgundy);
+        margin-bottom: 15px;
+    }
+    
+    .btn-reservations {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 24px;
+        font-size: 0.95rem;
+    }
+    
+    .btn-reservations::after {
+        content: '→';
+        transition: transform 0.3s;
+    }
+    
+    .btn-reservations:hover::after {
+        transform: translateX(5px);
+    }
+    
+    /* Индикатор загрузки */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    
+    .loader {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #B8860B;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-left: 8px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Сообщения об ошибках (только красные) */
+    .error-message {
+        background: #ffebee;
+        color: #f44336;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+        border-left: 3px solid #f44336;
+        animation: shake 0.3s ease;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    /* ========== АДАПТИВНОСТЬ ========== */
+    
+    /* Планшеты (768px - 1000px) */
+    @media (max-width: 768px) {
+        .booking-page {
+            padding: 50px 20px;
+        }
+        
+        .booking-container {
+            max-width: 550px;
+        }
+        
+        .booking-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .booking-header p {
+            font-size: 0.95rem;
+        }
+        
+        .booking-body {
+            padding: 28px;
+        }
+        
+        .form-group label {
+            font-size: 0.85rem;
+        }
+        
+        .form-control {
+            padding: 10px 12px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-submit {
+            padding: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .booking-footer .phone {
+            font-size: 1.1rem;
+        }
+        
+        .btn-reservations {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* Маленькие телефоны (540px - 768px) */
+    @media (max-width: 540px) {
+        .booking-page {
+            padding: 40px 15px;
+        }
+        
+        .booking-container {
+            max-width: 100%;
+        }
+        
+        .booking-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .booking-header p {
+            font-size: 0.85rem;
+        }
+        
+        .booking-body {
+            padding: 22px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+        
+        .form-control {
+            padding: 9px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-submit {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .booking-footer {
+            margin-top: 30px;
+        }
+        
+        .booking-footer .phone {
+            font-size: 1rem;
+        }
+        
+        .btn-reservations {
+            padding: 9px 18px;
+            font-size: 0.85rem;
+        }
+    }
+    
+    /* Мобильные телефоны (480px - 540px) */
+    @media (max-width: 480px) {
+        .booking-page {
+            padding: 30px 12px;
+        }
+        
+        .booking-header h1 {
+            font-size: 1.3rem;
+        }
+        
+        .booking-header p {
+            font-size: 0.8rem;
+        }
+        
+        .booking-body {
+            padding: 18px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            font-size: 0.75rem;
+        }
+        
+        .form-control {
+            padding: 8px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-submit {
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .booking-footer .phone {
+            font-size: 0.95rem;
+        }
+        
+        .btn-reservations {
+            padding: 8px 16px;
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Очень маленькие телефоны (400px - 480px) */
+    @media (max-width: 400px) {
+        .booking-header h1 {
+            font-size: 1.2rem;
+        }
+        
+        .booking-header p {
+            font-size: 0.75rem;
+        }
+        
+        .booking-body {
+            padding: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+        }
+        
+        .form-control {
+            padding: 7px 8px;
+            font-size: 0.75rem;
+        }
+        
+        .btn-submit {
+            padding: 7px;
+            font-size: 0.8rem;
+        }
+        
+        .booking-footer .phone {
+            font-size: 0.9rem;
+        }
+        
+        .btn-reservations {
+            padding: 7px 14px;
+            font-size: 0.75rem;
+        }
+    }
+    
+    /* Экстремально маленькие телефоны (320px - 400px) */
+    @media (max-width: 360px) {
+        .booking-page {
+            padding: 25px 10px;
+        }
+        
+        .booking-header h1 {
+            font-size: 1.1rem;
+        }
+        
+        .booking-header p {
+            font-size: 0.7rem;
+        }
+        
+        .booking-body {
+            padding: 12px;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        .form-group label {
+            font-size: 0.65rem;
+        }
+        
+        .form-control {
+            padding: 6px 8px;
+            font-size: 0.7rem;
+            border-radius: 6px;
+        }
+        
+        .btn-submit {
+            padding: 6px;
+            font-size: 0.75rem;
+        }
+        
+        .booking-footer {
+            margin-top: 25px;
+        }
+        
+        .booking-footer .phone {
+            font-size: 0.85rem;
+        }
+        
+        .btn-reservations {
+            padding: 6px 12px;
+            font-size: 0.7rem;
+        }
+    }
+    
+    /* Супер маленькие телефоны (до 320px) */
+    @media (max-width: 320px) {
+        .booking-page {
+            padding: 20px 8px;
+        }
+        
+        .booking-header h1 {
+            font-size: 1rem;
+        }
+        
+        .booking-header p {
+            font-size: 0.65rem;
+        }
+        
+        .booking-body {
+            padding: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 8px;
+        }
+        
+        .form-group label {
+            font-size: 0.6rem;
+            margin-bottom: 3px;
+        }
+        
+        .form-control {
+            padding: 5px 6px;
+            font-size: 0.65rem;
+            border-radius: 5px;
+        }
+        
+        .btn-submit {
+            padding: 5px;
+            font-size: 0.7rem;
+        }
+        
+        .booking-footer {
+            margin-top: 20px;
+        }
+        
+        .booking-footer .phone {
+            font-size: 0.8rem;
+        }
+        
+        .btn-reservations {
+            padding: 5px 10px;
+            font-size: 0.65rem;
+        }
+        
+        .btn-reservations::after {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="booking-page">
+    <div class="booking-container">
+        <div class="booking-header">
+            <h1>Бронирование столика</h1>
+            <p>Заполните форму, и мы подтвердим бронь в ближайшее время</p>
+        </div>
+        
+        <div class="booking-card">
+            <div class="booking-body">
+                <div class="info-note">
+                    Стол бронируется на 2 часа. При бронировании стола на определенное время, 
+                    он считается занятым на 2 часа вперед. В списке отображаются только столы, 
+                    подходящие по количеству гостей.
+                </div>
+                
+                <!-- Только сообщения об ошибках -->
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if message.tags != 'success' %}
+                            <div class="error-message">
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" action="{% url 'bookings:create_booking' %}" id="bookingForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Ваше имя</label>
+                        <input type="text" class="form-control" value="{{ user.get_full_name|default:user.username }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Телефон *</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ user.profile.phone|default:'' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" value="{{ user.email }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Дата *</label>
+                        <input type="date" name="reservation_date" id="reservation_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Время *</label>
+                        <input type="time" name="reservation_time" id="reservation_time" class="form-control" value="19:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Количество гостей *</label>
+                        <select name="guest_count" id="guest_count" class="form-control" required>
+                            <option value="1">1 гость</option>
+                            <option value="2" selected>2 гостя</option>
+                            <option value="3">3 гостя</option>
+                            <option value="4">4 гостя</option>
+                            <option value="5">5 гостей</option>
+                            <option value="6">6 гостей</option>
+                            <option value="7">7 гостей</option>
+                            <option value="8">8 гостей</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Стол *</label>
+                        <select name="table_id" id="table_id" class="form-control" required>
+                            <option value="">Сначала выберите дату, время и количество гостей</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Комментарий (пожелания, особые случаи)</label>
+                        <textarea name="comment" class="form-control" rows="3" placeholder="День рождения, особый столик и т.д."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-submit">Забронировать</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="booking-footer">
+            <p>Или позвоните нам:</p>
+            <div class="phone">📞 +7 (919) 894-86-88</div>
+            <a href="{% url 'users:profile' %}" class="btn btn-secondary btn-reservations">Мои бронирования</a>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Функция для загрузки доступных столов
+    function loadAvailableTables() {
+        const dateInput = document.getElementById('reservation_date');
+        const timeInput = document.getElementById('reservation_time');
+        const guestCount = document.getElementById('guest_count');
+        const tableSelect = document.getElementById('table_id');
+        
+        if (!dateInput.value || !timeInput.value) {
+            tableSelect.innerHTML = '<option value="">Сначала выберите дату и время</option>';
+            return;
+        }
+        
+        if (!guestCount.value) {
+            tableSelect.innerHTML = '<option value="">Сначала выберите количество гостей</option>';
+            return;
+        }
+        
+        // Показываем индикатор загрузки
+        tableSelect.innerHTML = '<option value="">Загрузка столов...</option>';
+        tableSelect.disabled = true;
+        
+        fetch(`{% url 'bookings:api_available_tables' %}?date=${dateInput.value}&time=${timeInput.value}&guests=${guestCount.value}`)
+            .then(response => response.json())
+            .then(data => {
+                tableSelect.disabled = false;
+                
+                if (data.error) {
+                    tableSelect.innerHTML = `<option value="">${data.error}</option>`;
+                    return;
+                }
+                
+                if (data.tables && data.tables.length > 0) {
+                    let options = '<option value="">Выберите стол</option>';
+                    data.tables.forEach(table => {
+                        options += `<option value="${table.id}">Стол №${table.number} (${table.seats} мест) - ${table.location}</option>`;
+                    });
+                    tableSelect.innerHTML = options;
+                } else {
+                    tableSelect.innerHTML = '<option value="">Нет свободных столов на выбранное время и количество гостей</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                tableSelect.disabled = false;
+                tableSelect.innerHTML = '<option value="">Ошибка загрузки столов</option>';
+            });
+    }
+    
+    // Слушаем изменения даты, времени и количества гостей
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('reservation_date');
+        const timeInput = document.getElementById('reservation_time');
+        const guestCount = document.getElementById('guest_count');
+        
+        // Устанавливаем минимальную дату - сегодня
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+        
+        dateInput.addEventListener('change', loadAvailableTables);
+        timeInput.addEventListener('change', loadAvailableTables);
+        guestCount.addEventListener('change', loadAvailableTables);
+        
+        // Если дата, время и количество гостей уже заполнены, загружаем столы
+        if (dateInput.value && timeInput.value && guestCount.value) {
+            loadAvailableTables();
+        }
+    });
+</script>
+{% endblock %}

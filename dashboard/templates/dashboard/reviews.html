@@ -1,0 +1,49 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Отзывы | Админ-панель Меркурий{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>⭐ Модерация отзывов</h2>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Клиент</th>
+                <th>Оценка</th>
+                <th>Отзыв</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in reviews %}
+            <tr>
+                <td>{{ review.user.get_full_name|default:review.user.username }}</td>
+                <td>⭐ {{ review.rating }}/5</td>
+                <td>{{ review.comment }}</td>
+                <td>{{ review.created_at|date:"d.m.Y" }}</td>
+                <td>
+                    {% if review.is_published %}
+                        <span class="status status-confirmed">Опубликован</span>
+                    {% else %}
+                        <span class="status status-pending">На модерации</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not review.is_published %}
+                    <a href="{% url 'dashboard:publish_review' review.id %}" class="btn btn-primary btn-sm">Опубликовать</a>
+                    {% endif %}
+                    <a href="{% url 'dashboard:delete_review' review.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Удалить отзыв?')">Удалить</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="text-align: center;">Нет отзывов</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

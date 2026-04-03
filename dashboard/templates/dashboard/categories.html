@@ -1,0 +1,44 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Категории | Админ-панель Меркурий{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>📁 Управление категориями</h2>
+    <a href="{% url 'dashboard:add_category' %}" class="btn btn-primary">+ Добавить категорию</a>
+</div>
+
+<div class="table-container">
+    <table style="width: 100%;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Порядок</th>
+                <th>Блюд</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr id="category-{{ category.id }}">
+                <td>{{ category.id }}</td>
+                <td><strong>{{ category.name }}</strong></td>
+                <td>{{ category.description|truncatechars:50|default:"—" }}</td>
+                <td>{{ category.order }}</td>
+                <td>{{ category.dishes.count }}</td>
+                <td>
+                    <a href="{% url 'dashboard:edit_category' category.id %}" class="btn btn-primary btn-sm">✏️</a>
+                    <a href="{% url 'dashboard:delete_category' category.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Удалить категорию? Все блюда в ней останутся без категории?')">🗑️</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">Нет категорий</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

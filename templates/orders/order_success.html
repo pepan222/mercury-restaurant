@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Заказ оформлен | Ресторан Меркурий{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-page {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+    }
+    
+    .success-card {
+        max-width: 600px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        text-align: center;
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .success-header {
+        background: linear-gradient(135deg, #4caf50, #2e7d32);
+        padding: 40px;
+        color: white;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        margin-bottom: 15px;
+        animation: scaleIn 0.5s ease 0.2s both;
+    }
+    
+    @keyframes scaleIn {
+        from {
+            transform: scale(0);
+        }
+        to {
+            transform: scale(1);
+        }
+    }
+    
+    .success-header h2 {
+        color: white;
+        margin: 0;
+        font-size: 1.8rem;
+    }
+    
+    .success-header h2:after {
+        display: none;
+    }
+    
+    .success-header p {
+        margin-top: 10px;
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+    
+    .success-body {
+        padding: 40px;
+    }
+    
+    .order-info {
+        background: var(--light-bg);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        text-align: left;
+    }
+    
+    .order-info h3 {
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+        color: var(--primary-burgundy);
+    }
+    
+    .order-details {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .order-details:last-child {
+        border-bottom: none;
+    }
+    
+    .order-details .label {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .order-details .value {
+        color: var(--text-light);
+        text-align: right;
+    }
+    
+    .order-items {
+        margin-top: 20px;
+    }
+    
+    .order-items strong {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--text-dark);
+    }
+    
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px dashed var(--border-light);
+    }
+    
+    .order-item:last-child {
+        border-bottom: none;
+    }
+    
+    .order-item-info {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .order-item-name {
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+    
+    .order-item-quantity {
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+    
+    .order-item-price {
+        color: var(--primary-burgundy);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .order-total {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--primary-burgundy);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    
+    .action-buttons .btn {
+        min-width: 160px;
+    }
+    
+    .status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-pending {
+        background: #fff3e0;
+        color: #e67e22;
+    }
+    
+    .status-confirmed {
+        background: #e3f2fd;
+        color: #2196f3;
+    }
+    
+    .status-processing {
+        background: #e8eaf6;
+        color: #3f51b5;
+    }
+    
+    .status-delivered,
+    .status-completed {
+        background: #e8f5e9;
+        color: #4caf50;
+    }
+    
+    .status-cancelled {
+        background: #ffebee;
+        color: #f44336;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .success-header {
+            padding: 30px;
+        }
+        
+        .success-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .success-body {
+            padding: 25px;
+        }
+        
+        .order-info h3 {
+            font-size: 1.1rem;
+        }
+        
+        .order-details .label,
+        .order-details .value {
+            font-size: 0.9rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .success-header {
+            padding: 25px;
+        }
+        
+        .success-header h2 {
+            font-size: 1.3rem;
+        }
+        
+        .success-header p {
+            font-size: 0.85rem;
+        }
+        
+        .success-body {
+            padding: 20px;
+        }
+        
+        .order-info {
+            padding: 15px;
+        }
+        
+        .order-info h3 {
+            font-size: 1rem;
+        }
+        
+        .order-details .label,
+        .order-details .value {
+            font-size: 0.85rem;
+        }
+        
+        .order-item-name {
+            font-size: 0.85rem;
+        }
+        
+        .order-item-quantity {
+            font-size: 0.75rem;
+        }
+        
+        .order-item-price {
+            font-size: 0.85rem;
+        }
+        
+        .order-total {
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 360px) {
+        .success-header {
+            padding: 20px;
+        }
+        
+        .success-header h2 {
+            font-size: 1.1rem;
+        }
+        
+        .success-header p {
+            font-size: 0.75rem;
+        }
+        
+        .success-body {
+            padding: 15px;
+        }
+        
+        .order-info h3 {
+            font-size: 0.9rem;
+        }
+        
+        .order-details .label,
+        .order-details .value {
+            font-size: 0.75rem;
+        }
+        
+        .order-item-name {
+            font-size: 0.75rem;
+        }
+        
+        .order-item-quantity {
+            font-size: 0.7rem;
+        }
+        
+        .order-item-price {
+            font-size: 0.75rem;
+        }
+        
+        .order-total {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="success-page">
+    <div class="success-card">
+        <div class="success-header">
+            <div class="success-icon">✅</div>
+            <h2>Заказ успешно оформлен!</h2>
+            <p>Спасибо за ваш заказ</p>
+        </div>
+        
+        <div class="success-body">
+            <div class="order-info">
+                <h3>Детали заказа</h3>
+                
+                <div class="order-details">
+                    <span class="label">Дата заказа:</span>
+                    <span class="value">{{ order.order_date|date:"d.m.Y H:i" }}</span>
+                </div>
+                
+                <div class="order-details">
+                    <span class="label">Способ оплаты:</span>
+                    <span class="value">
+                        {% if order.payment_method == 'cash' %}
+                            Наличными курьеру
+                        {% elif order.payment_method == 'card_courier' %}
+                            Картой курьеру
+                        {% else %}
+                            {{ order.get_payment_method_display }}
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="order-details">
+                    <span class="label">Адрес доставки:</span>
+                    <span class="value">{{ order.delivery_address }}</span>
+                </div>
+                
+                <div class="order-details">
+                    <span class="label">Статус заказа:</span>
+                    <span class="value">
+                        <span class="status status-{{ order.status }}">{{ order.get_status_display }}</span>
+                    </span>
+                </div>
+                
+                {% if order.comment %}
+                <div class="order-details">
+                    <span class="label">Комментарий:</span>
+                    <span class="value">{{ order.comment }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="order-items">
+                    <strong>Состав заказа:</strong>
+                    {% for item in order.items.all %}
+                    <div class="order-item">
+                        <div class="order-item-info">
+                            <span class="order-item-name">{{ item.dish.name }}</span>
+                            <span class="order-item-quantity">x{{ item.quantity }}</span>
+                        </div>
+                        <span class="order-item-price">{{ item.price|floatformat:0 }}₽</span>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="order-total">
+                        <span>Итого:</span>
+                        <span>{{ order.total_amount|floatformat:0 }}₽</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{% url 'users:profile' %}" class="btn btn-primary">Мои заказы</a>
+                <a href="{% url 'menu:menu_list' %}" class="btn btn-secondary">Продолжить покупки</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

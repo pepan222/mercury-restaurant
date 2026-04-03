@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+
+# MySQL (ВАЖНО для вашего проекта!)
+*.sql
+*.sql.gz
+*.my.cnf
+mysql_history
+*.mysql
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables (ОЧЕНЬ ВАЖНО!)
+.env
+.env.local
+.env.production
+.env.dev
+.env.prod
+
+# Uploads
+uploads/
+media/uploads/
+
+# Database
+*.sqlite3
+*.db
+*.sql
+*.sql.gz
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs
+logs/
+*.log
+
+# Secret keys
+secret.key
+key.pem
+*.pem
+
+# Backup files
+*.bak
+*.backup
+*.tmp

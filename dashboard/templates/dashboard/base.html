@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Админ-панель | Ресторан Меркурий{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        /* Хедер */
+        .admin-header {
+            background: #800020;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .admin-header h1 {
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+        
+        .admin-header h1 span {
+            font-weight: 700;
+        }
+        
+        .admin-header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .admin-header .user-info a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .admin-header .user-info a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Навигация */
+        .admin-nav {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 0 30px;
+            overflow-x: auto;
+        }
+        
+        .admin-nav ul {
+            list-style: none;
+            display: flex;
+            gap: 5px;
+            min-width: max-content;
+        }
+        
+        .admin-nav li a {
+            display: block;
+            padding: 15px 20px;
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .admin-nav li a:hover {
+            color: #B8860B;
+            background: #f8f9fa;
+        }
+        
+        .admin-nav li a.active {
+            color: #B8860B;
+            border-bottom: 2px solid #B8860B;
+        }
+        
+        /* Контент */
+        .admin-content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Карточки статистики */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #800020;
+        }
+        
+        /* Таблицы */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        tr:hover {
+            background: #fafafa;
+        }
+        
+        /* Статусы */
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-preparing { background: #cce5ff; color: #004085; }
+        .status-delivering { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        /* Кнопки */
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #B8860B;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #9a7009;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+        }
+        
+        /* Формы */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #B8860B;
+        }
+        
+        /* Заголовки страниц */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-header h2 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .admin-nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .admin-nav li a {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+            
+            .admin-content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            table {
+                font-size: 0.85rem;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>🍽️ Ресторан <span>Меркурий</span> | Панель управления</h1>
+        <div class="user-info">
+            <span>👋 {{ user.get_full_name|default:user.username }}</span>
+            <a href="{% url 'core:home' %}">🌐 На сайт</a>
+            <a href="{% url 'logout' %}">🚪 Выйти</a>
+        </div>
+    </div>
+    
+    <div class="admin-nav">
+        <ul>
+            <li><a href="{% url 'dashboard:index' %}" class="{% if active == 'index' %}active{% endif %}">📊 Главная</a></li>
+            <li><a href="{% url 'dashboard:orders' %}" class="{% if active == 'orders' %}active{% endif %}">📦 Заказы</a></li>
+            <li><a href="{% url 'dashboard:menu' %}" class="{% if active == 'menu' %}active{% endif %}">🍽️ Меню</a></li>
+            <li><a href="{% url 'dashboard:categories' %}" class="{% if active == 'categories' %}active{% endif %}">📁 Категории</a></li>
+            <li><a href="{% url 'dashboard:subcategories' %}" class="{% if active == 'subcategories' %}active{% endif %}">📂 Подкатегории</a></li>
+            <li><a href="{% url 'dashboard:bookings' %}" class="{% if active == 'bookings' %}active{% endif %}">📅 Бронирования</a></li>
+            <li><a href="{% url 'dashboard:reviews' %}" class="{% if active == 'reviews' %}active{% endif %}">⭐ Отзывы</a></li>
+            <li class="nav-item"><a class="nav-link {% if active == 'tables' %}active{% endif %}" href="{% url 'dashboard:tables' %}"><i class="fas fa-chair"></i> Столики</a></li>
+        </ul>
+    </div>
+    
+    <div class="admin-content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

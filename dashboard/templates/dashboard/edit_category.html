@@ -1,0 +1,35 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Редактировать категорию | Админ-панель Меркурий{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>📁 Редактирование категории: {{ category.name }}</h2>
+    <a href="{% url 'dashboard:categories' %}" class="btn btn-primary">← Назад к категориям</a>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Название категории *</label>
+            <input type="text" name="name" class="form-control" value="{{ category.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Описание</label>
+            <textarea name="description" class="form-control" rows="3">{{ category.description }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Порядок сортировки</label>
+            <input type="number" name="order" class="form-control" value="{{ category.order }}">
+            <small style="color: #666;">Чем меньше число, тем выше в списке</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        <a href="{% url 'dashboard:categories' %}" class="btn" style="background: #6c757d; color: white;">Отмена</a>
+    </form>
+</div>
+{% endblock %}

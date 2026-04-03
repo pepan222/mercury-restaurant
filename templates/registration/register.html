@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация | Ресторан Меркурий{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="booking-form" style="max-width: 400px;">
+            <h2 style="text-align: center; margin-bottom: 30px;">Регистрация</h2>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Имя пользователя *</label>
+                    <input type="text" name="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Телефон</label>
+                    <input type="tel" name="phone" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Пароль *</label>
+                    <input type="password" name="password1" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Подтвердите пароль *</label>
+                    <input type="password" name="password2" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Зарегистрироваться</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <p>Уже есть аккаунт? <a href="{% url 'users:login' %}">Войти</a></p>
+                <p><a href="{% url 'core:home' %}">← На главную</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Редактировать блюдо | Админ-панель Меркурий{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>🍽️ Редактирование блюда: {{ dish.name }}</h2>
+    <a href="{% url 'dashboard:menu' %}#category-{{ dish.category.id }}" class="btn btn-primary" id="backToMenuBtn">← Назад к меню</a>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Категория *</label>
+            <select name="category_id" class="form-control" id="categorySelect" required>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if dish.category.id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Подкатегория (необязательно)</label>
+            <select name="subcategory_id" class="form-control" id="subcategorySelect">
+                <option value="">-- Без подкатегории --</option>
+                {% for subcategory in subcategories %}
+                <option value="{{ subcategory.id }}" data-category="{{ subcategory.category.id }}" {% if dish.subcategory and dish.subcategory.id == subcategory.id %}selected{% endif %}>
+                    {{ subcategory.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <small style="color: #666;">Фильтруется по выбранной категории</small>
+        </div>
+        
+        <div class="form-group">
+            <label>Название блюда *</label>
+            <input type="text" name="name" class="form-control" value="{{ dish.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Фото блюда</label>
+            {% if dish.image %}
+            <div style="margin-bottom: 10px;">
+                <img src="{{ dish.image.url }}" style="max-width: 150px; border-radius: 8px;">
+                <br>
+                <small>Текущее фото</small>
+            </div>
+            {% endif %}
+            <input type="file" name="image" class="form-control" accept="image/*">
+            <small style="color: #666;">Загрузите новое фото (оставьте пустым, чтобы сохранить текущее)</small>
+        </div>
+        
+        <div class="form-group">
+            <label>Описание</label>
+            <textarea name="description" class="form-control" rows="3">{{ dish.description }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Цена (₽) *</label>
+            <input type="text" name="price" class="form-control" id="priceInput" value="{{ dish.price|floatformat:2|default:'' }}" required>
+            <small style="color: #666;">Введите число (например: 390 или 390.50)</small>
+        </div>
+        
+        <div class="form-group">
+            <label>Вес</label>
+            <input type="text" name="weight" class="form-control" value="{{ dish.weight|default:'' }}" placeholder="Пример: 350 г или 200/50 мл">
+            <small style="color: #666;">Можно указывать: 350 г, 200/50 мл, 300 г + соус 50 мл</small>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_available" {% if dish.is_available %}checked{% endif %}>
+                Доступно для заказа
+            </label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        <a href="{% url 'dashboard:menu' %}#category-{{ dish.category.id }}" class="btn" style="background: #6c757d; color: white;" id="cancelBtn">Отмена</a>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Фильтр подкатегорий
+        const categorySelect = document.getElementById('categorySelect');
+        const subcategorySelect = document.getElementById('subcategorySelect');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        // Функция обновления ссылок с якорем
+        function updateBackLinks() {
+            const categoryId = categorySelect.value;
+            if (categoryId) {
+                const anchor = '#category-' + categoryId;
+                if (backToMenuBtn) backToMenuBtn.href = "{% url 'dashboard:menu' %}" + anchor;
+                if (cancelBtn) cancelBtn.href = "{% url 'dashboard:menu' %}" + anchor;
+            } else {
+                if (backToMenuBtn) backToMenuBtn.href = "{% url 'dashboard:menu' %}";
+                if (cancelBtn) cancelBtn.href = "{% url 'dashboard:menu' %}";
+            }
+        }
+        
+        function filterSubcategories() {
+            const categoryId = categorySelect.value;
+            const currentValue = subcategorySelect.value;
+            
+            for (let option of subcategorySelect.options) {
+                if (option.value === '') continue;
+                const optionCategory = option.getAttribute('data-category');
+                if (!optionCategory) continue;
+                
+                if (optionCategory === categoryId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+            
+            // Проверяем, есть ли текущее значение в отображаемых опциях
+            let selectedStillVisible = false;
+            for (let option of subcategorySelect.options) {
+                if (option.value === currentValue && option.style.display !== 'none') {
+                    selectedStillVisible = true;
+                    break;
+                }
+            }
+            
+            if (!selectedStillVisible && currentValue) {
+                subcategorySelect.value = '';
+            }
+            
+            // Обновляем ссылки при изменении категории
+            updateBackLinks();
+        }
+        
+        categorySelect.addEventListener('change', filterSubcategories);
+        filterSubcategories();
+        
+        // Обработка цены
+        const priceInput = document.getElementById('priceInput');
+        const form = document.querySelector('form');
+        
+        function formatPrice(value) {
+            if (!value) return '';
+            let formatted = value.replace(',', '.');
+            formatted = formatted.replace(/[^\d.]/g, '');
+            const parts = formatted.split('.');
+            if (parts.length > 2) {
+                formatted = parts[0] + '.' + parts.slice(1).join('');
+            }
+            if (parts.length > 1 && parts[1].length > 2) {
+                parts[1] = parts[1].substring(0, 2);
+                formatted = parts.join('.');
+            }
+            return formatted;
+        }
+        
+        if (priceInput) {
+            // При потере фокуса форматируем цену
+            priceInput.addEventListener('blur', function() {
+                this.value = formatPrice(this.value);
+            });
+            
+            // При вводе разрешаем только цифры, запятую и точку
+            priceInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^\d.,]/g, '');
+            });
+        }
+        
+        // При отправке формы преобразуем цену
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                let priceValue = priceInput.value.trim();
+                if (priceValue === '') {
+                    e.preventDefault();
+                    alert('Введите цену');
+                    return false;
+                }
+                
+                priceValue = formatPrice(priceValue);
+                if (isNaN(parseFloat(priceValue))) {
+                    e.preventDefault();
+                    alert('Введите корректную цену (например: 390 или 390.50)');
+                    return false;
+                }
+                
+                priceInput.value = priceValue;
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Редактировать подкатегорию | Админ-панель Меркурий{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>📂 Редактирование подкатегории: {{ subcategory.name }}</h2>
+    <a href="{% url 'dashboard:subcategories' %}" class="btn btn-primary">← Назад к подкатегориям</a>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Категория *</label>
+            <select name="category_id" class="form-control" required>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if subcategory.category.id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Название подкатегории *</label>
+            <input type="text" name="name" class="form-control" value="{{ subcategory.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Порядок сортировки</label>
+            <input type="number" name="order" class="form-control" value="{{ subcategory.order }}">
+            <small style="color: #666;">Чем меньше число, тем выше в списке</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        <a href="{% url 'dashboard:subcategories' %}" class="btn" style="background: #6c757d; color: white;">Отмена</a>
+    </form>
+</div>
+{% endblock %}

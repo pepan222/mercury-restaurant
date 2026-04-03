@@ -1,0 +1,541 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Оформление заказа | Ресторан Меркурий{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-page {
+        padding: 40px 0;
+    }
+    
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 40px;
+    }
+    
+    .order-summary {
+        background: var(--light-bg);
+        border-radius: 16px;
+        padding: 25px;
+        height: fit-content;
+    }
+    
+    .order-summary h3 {
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 1.2rem;
+    }
+    
+    .order-items {
+        margin-bottom: 20px;
+    }
+    
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px dashed var(--border-light);
+    }
+    
+    .order-item-info {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .order-item-name {
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+    
+    .order-item-quantity {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    
+    .order-item-price {
+        font-weight: 600;
+        color: var(--primary-burgundy);
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+    
+    .order-total {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-light);
+    }
+    
+    .order-total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 0.95rem;
+    }
+    
+    .order-total-row.grand-total {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-burgundy);
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-light);
+    }
+    
+    .delivery-form {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--shadow);
+    }
+    
+    .delivery-form h3 {
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .btn-submit {
+        flex: 2;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .btn-cancel {
+        flex: 1;
+        padding: 14px;
+        font-size: 1rem;
+        background: #6c757d;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .address-note {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        margin-top: 5px;
+        display: block;
+    }
+    
+    /* ========== АДАПТИВНОСТЬ ========== */
+    
+    /* Планшеты (768px - 1000px) */
+    @media (max-width: 768px) {
+        .checkout-page {
+            padding: 30px 0;
+        }
+        
+        .checkout-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        .order-summary {
+            padding: 20px;
+        }
+        
+        .order-summary h3,
+        .delivery-form h3 {
+            font-size: 1.1rem;
+        }
+        
+        .order-item-name {
+            font-size: 0.9rem;
+        }
+        
+        .order-item-quantity {
+            font-size: 0.85rem;
+        }
+        
+        .order-item-price {
+            font-size: 0.9rem;
+        }
+        
+        .order-total-row {
+            font-size: 0.9rem;
+        }
+        
+        .order-total-row.grand-total {
+            font-size: 1.1rem;
+        }
+        
+        .delivery-form {
+            padding: 20px;
+        }
+        
+        .form-row {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .form-actions {
+            gap: 12px;
+        }
+        
+        .btn-submit,
+        .btn-cancel {
+            padding: 12px;
+            font-size: 0.95rem;
+        }
+    }
+    
+    /* Маленькие телефоны (540px - 768px) */
+    @media (max-width: 540px) {
+        .checkout-page {
+            padding: 25px 0;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-submit,
+        .btn-cancel {
+            width: 100%;
+            padding: 12px;
+        }
+        
+        .order-summary {
+            padding: 18px;
+        }
+        
+        .delivery-form {
+            padding: 18px;
+        }
+    }
+    
+    /* Мобильные телефоны (480px - 540px) */
+    @media (max-width: 480px) {
+        .checkout-page {
+            padding: 20px 0;
+        }
+        
+        .order-summary h3,
+        .delivery-form h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        
+        .order-item {
+            padding: 10px 0;
+        }
+        
+        .order-item-name {
+            font-size: 0.85rem;
+        }
+        
+        .order-item-quantity {
+            font-size: 0.8rem;
+        }
+        
+        .order-item-price {
+            font-size: 0.85rem;
+        }
+        
+        .order-total-row {
+            font-size: 0.85rem;
+            padding: 6px 0;
+        }
+        
+        .order-total-row.grand-total {
+            font-size: 1rem;
+        }
+        
+        .delivery-form {
+            padding: 15px;
+        }
+        
+        .form-group label {
+            font-size: 0.8rem;
+        }
+        
+        .form-control {
+            padding: 8px 10px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-submit,
+        .btn-cancel {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* Очень маленькие телефоны (400px - 480px) */
+    @media (max-width: 400px) {
+        .order-item-name {
+            font-size: 0.8rem;
+        }
+        
+        .order-item-quantity {
+            font-size: 0.75rem;
+        }
+        
+        .order-item-price {
+            font-size: 0.8rem;
+        }
+        
+        .order-total-row {
+            font-size: 0.8rem;
+        }
+        
+        .form-group label {
+            font-size: 0.75rem;
+        }
+        
+        .form-control {
+            padding: 7px 8px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-submit,
+        .btn-cancel {
+            padding: 9px;
+            font-size: 0.85rem;
+        }
+    }
+    
+    /* Экстремально маленькие телефоны (320px - 400px) */
+    @media (max-width: 360px) {
+        .checkout-page {
+            padding: 15px 0;
+        }
+        
+        .order-summary {
+            padding: 12px;
+        }
+        
+        .order-summary h3,
+        .delivery-form h3 {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+        
+        .order-item {
+            padding: 8px 0;
+        }
+        
+        .order-item-name {
+            font-size: 0.75rem;
+        }
+        
+        .order-item-quantity {
+            font-size: 0.7rem;
+        }
+        
+        .order-item-price {
+            font-size: 0.75rem;
+        }
+        
+        .order-total-row {
+            font-size: 0.75rem;
+            padding: 5px 0;
+        }
+        
+        .order-total-row.grand-total {
+            font-size: 0.9rem;
+        }
+        
+        .delivery-form {
+            padding: 12px;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+        }
+        
+        .form-control {
+            padding: 6px 8px;
+            font-size: 0.75rem;
+        }
+        
+        .btn-submit,
+        .btn-cancel {
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Супер маленькие телефоны (до 320px) */
+    @media (max-width: 320px) {
+        .checkout-page {
+            padding: 12px 0;
+        }
+        
+        .order-summary {
+            padding: 10px;
+        }
+        
+        .order-summary h3,
+        .delivery-form h3 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .order-item {
+            padding: 6px 0;
+        }
+        
+        .order-item-name {
+            font-size: 0.7rem;
+        }
+        
+        .order-item-quantity {
+            font-size: 0.65rem;
+        }
+        
+        .order-item-price {
+            font-size: 0.7rem;
+        }
+        
+        .order-total-row {
+            font-size: 0.7rem;
+            padding: 4px 0;
+        }
+        
+        .order-total-row.grand-total {
+            font-size: 0.85rem;
+        }
+        
+        .delivery-form {
+            padding: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        .form-group label {
+            font-size: 0.65rem;
+        }
+        
+        .form-control {
+            padding: 5px 6px;
+            font-size: 0.7rem;
+        }
+        
+        .btn-submit,
+        .btn-cancel {
+            padding: 7px;
+            font-size: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section checkout-page">
+    <div class="container">
+        <h1 style="margin-bottom: 30px;">Оформление заказа</h1>
+        
+        <div class="checkout-grid">
+            <div class="order-summary">
+                <h3>Ваш заказ</h3>
+                <div class="order-items">
+                    {% for item in cart.items.all %}
+                    <div class="order-item">
+                        <div class="order-item-info">
+                            <span class="order-item-name">{{ item.dish.name }}</span>
+                            <span class="order-item-quantity">x{{ item.quantity }}</span>
+                        </div>
+                        <div class="order-item-price">{{ item.get_total }}₽</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="order-total">
+                    <div class="order-total-row">
+                        <span>Сумма заказа:</span>
+                        <span>{{ cart.get_total }}₽</span>
+                    </div>
+                    <div class="order-total-row">
+                        <span>Доставка:</span>
+                        <span>{% if cart.get_total < 1500 %}200₽{% else %}Бесплатно{% endif %}</span>
+                    </div>
+                    <div class="order-total-row grand-total">
+                        <span>Итого:</span>
+                        <span>{% if cart.get_total < 1500 %}{{ cart.get_total|add:200 }}₽{% else %}{{ cart.get_total }}₽{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="delivery-form">
+                <h3>Данные для доставки</h3>
+                <form method="post" id="checkoutForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Адрес доставки *</label>
+                        <input type="text" name="address" class="form-control" value="{{ user_address }}" placeholder="Улица, дом, квартира" required>
+                        <small class="address-note">Вы можете изменить адрес для этого заказа. Изменения не сохранятся в профиле.</small>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Подъезд</label>
+                            <input type="text" name="entrance" class="form-control" placeholder="Подъезд">
+                        </div>
+                        <div class="form-group">
+                            <label>Этаж</label>
+                            <input type="text" name="floor" class="form-control" placeholder="Этаж">
+                        </div>
+                        <div class="form-group">
+                            <label>Домофон</label>
+                            <input type="text" name="intercom" class="form-control" placeholder="Код домофона">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Способ оплаты *</label>
+                        <select name="payment_method" class="form-control" required>
+                            <option value="cash">Наличными курьеру</option>
+                            <option value="card_courier">Картой курьеру</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Комментарий к заказу</label>
+                        <textarea name="comment" class="form-control" rows="3" placeholder="Пожелания по заказу, время доставки и т.д."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <a href="{% url 'orders:cart' %}" class="btn-cancel">Отмена</a>
+                        <button type="submit" class="btn btn-primary btn-submit">Оформить заказ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

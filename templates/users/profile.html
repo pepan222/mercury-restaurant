@@ -1,0 +1,827 @@
+{% extends 'base.html' %}
+
+{% block title %}Мой профиль | Ресторан Меркурий{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========== СТИЛИ ДЛЯ СТРАНИЦЫ ПРОФИЛЯ ========== */
+    
+    /* Основной контейнер */
+    .profile-page {
+        padding: 40px 0;
+    }
+    
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 40px;
+        align-items: start;
+    }
+    
+    /* Карточка профиля */
+    .profile-card {
+        background: var(--white);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+        width: 100%;
+    }
+    
+    .profile-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .profile-header {
+        background: linear-gradient(135deg, var(--primary-burgundy), #4a0010);
+        padding: 30px;
+        text-align: center;
+        color: var(--white);
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        background: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 3rem;
+        color: var(--primary-burgundy);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .profile-header h3 {
+        color: var(--white);
+        margin-bottom: 5px;
+        font-size: 1.3rem;
+        word-break: break-word;
+    }
+    
+    .profile-header p {
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    .profile-info {
+        padding: 25px;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+    
+    .info-value {
+        color: var(--text-light);
+        font-size: 0.95rem;
+        text-align: right;
+        word-break: break-word;
+        max-width: 60%;
+    }
+    
+    .profile-actions {
+        padding: 20px 25px 25px;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        gap: 15px;
+    }
+    
+    .profile-actions .btn {
+        flex: 1;
+        text-align: center;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        transition: all 0.3s ease;
+    }
+    
+    /* Секция заказов и бронирований */
+    .orders-section {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        width: 100%;
+    }
+    
+    .section-card {
+        background: var(--white);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    .section-header {
+        background: var(--light-bg);
+        padding: 20px 25px;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .section-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--primary-burgundy);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-header h3::before {
+        content: '';
+        width: 4px;
+        height: 20px;
+        background: var(--primary-gold);
+        border-radius: 2px;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+        padding: 0;
+    }
+    
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 500px;
+    }
+    
+    .orders-table th,
+    .orders-table td {
+        padding: 15px 20px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .orders-table th {
+        background: var(--white);
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .orders-table td {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    
+    .orders-table tr:hover td {
+        background: rgba(184, 134, 11, 0.05);
+    }
+    
+    /* Статусы */
+    .status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    
+    .status-pending {
+        background: #fff3e0;
+        color: #e67e22;
+    }
+    
+    .status-confirmed {
+        background: #e3f2fd;
+        color: #2196f3;
+    }
+    
+    .status-processing {
+        background: #e8eaf6;
+        color: #3f51b5;
+    }
+    
+    .status-delivered,
+    .status-completed {
+        background: #e8f5e9;
+        color: #4caf50;
+    }
+    
+    .status-cancelled {
+        background: #ffebee;
+        color: #f44336;
+    }
+    
+    .status-shipped {
+        background: #f3e5f5;
+        color: #9c27b0;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .empty-state p {
+        color: var(--text-light);
+        margin-bottom: 20px;
+    }
+    
+    .empty-state .btn-sm {
+        padding: 8px 20px;
+        font-size: 0.85rem;
+    }
+    
+    /* ========== АДАПТИВНОСТЬ ========== */
+    
+    /* Десктоп (1200px и выше) */
+    @media (min-width: 1200px) {
+        .profile-actions .btn {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+    }
+    
+    /* Планшеты (1000px - 1200px) - кнопки уменьшаются */
+    @media (max-width: 1200px) and (min-width: 1001px) {
+        .profile-actions {
+            gap: 12px;
+        }
+        
+        .profile-actions .btn {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+    }
+    
+    /* Планшеты и ниже (до 1000px) - одна колонка */
+    @media (max-width: 1000px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        .profile-card {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .orders-section {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .profile-actions {
+            gap: 15px;
+        }
+        
+        .profile-actions .btn {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* Планшеты (768px - 1000px) */
+    @media (max-width: 768px) {
+        .profile-page {
+            padding: 30px 0;
+        }
+        
+        .profile-card,
+        .orders-section {
+            max-width: 450px;
+        }
+        
+        .profile-header {
+            padding: 25px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
+        }
+        
+        .profile-header h3 {
+            font-size: 1.1rem;
+        }
+        
+        .profile-info {
+            padding: 20px;
+        }
+        
+        .info-row {
+            padding: 10px 0;
+        }
+        
+        .info-label {
+            font-size: 0.85rem;
+        }
+        
+        .info-value {
+            font-size: 0.85rem;
+        }
+        
+        .profile-actions {
+            padding: 15px 20px 20px;
+        }
+        
+        .profile-actions .btn {
+            padding: 8px 15px;
+            font-size: 0.85rem;
+        }
+        
+        .section-header {
+            padding: 15px 20px;
+        }
+        
+        .section-header h3 {
+            font-size: 1rem;
+        }
+        
+        .orders-table th,
+        .orders-table td {
+            padding: 12px 15px;
+            font-size: 0.85rem;
+        }
+    }
+    
+    /* Маленькие телефоны (540px - 768px) */
+    @media (max-width: 540px) {
+        .profile-card,
+        .orders-section {
+            max-width: 100%;
+        }
+        
+        .profile-actions {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .profile-actions .btn {
+            width: 100%;
+            white-space: normal;
+        }
+        
+        .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .info-value {
+            text-align: left;
+            max-width: 100%;
+        }
+        
+        .profile-header {
+            padding: 20px;
+        }
+        
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            font-size: 2rem;
+        }
+        
+        .profile-header h3 {
+            font-size: 1rem;
+        }
+        
+        .profile-header p {
+            font-size: 0.8rem;
+        }
+        
+        .profile-info {
+            padding: 15px;
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+        }
+        
+        .info-value {
+            font-size: 0.8rem;
+        }
+        
+        .orders-table {
+            min-width: 400px;
+        }
+    }
+    
+    /* Мобильные телефоны (480px - 540px) */
+    @media (max-width: 480px) {
+        .profile-page {
+            padding: 20px 0;
+        }
+        
+        .profile-header {
+            padding: 18px;
+        }
+        
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .profile-header h3 {
+            font-size: 0.95rem;
+        }
+        
+        .profile-header p {
+            font-size: 0.75rem;
+        }
+        
+        .profile-info {
+            padding: 12px;
+        }
+        
+        .info-row {
+            padding: 8px 0;
+        }
+        
+        .info-label {
+            font-size: 0.75rem;
+        }
+        
+        .info-value {
+            font-size: 0.75rem;
+        }
+        
+        .profile-actions {
+            padding: 12px 15px 15px;
+        }
+        
+        .section-header {
+            padding: 12px 15px;
+        }
+        
+        .section-header h3 {
+            font-size: 0.9rem;
+        }
+        
+        .orders-table th,
+        .orders-table td {
+            padding: 10px 12px;
+            font-size: 0.75rem;
+        }
+        
+        .orders-table th {
+            font-size: 0.7rem;
+        }
+        
+        .orders-table {
+            min-width: 350px;
+        }
+        
+        .status {
+            padding: 2px 8px;
+            font-size: 0.65rem;
+        }
+        
+        .empty-icon {
+            font-size: 2.5rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Очень маленькие телефоны (400px - 480px) */
+    @media (max-width: 400px) {
+        .orders-table th,
+        .orders-table td {
+            padding: 8px 10px;
+            font-size: 0.7rem;
+        }
+        
+        .orders-table th {
+            font-size: 0.65rem;
+        }
+        
+        .orders-table {
+            min-width: 300px;
+        }
+        
+        .status {
+            padding: 2px 6px;
+            font-size: 0.6rem;
+        }
+        
+        .info-label {
+            font-size: 0.7rem;
+        }
+        
+        .info-value {
+            font-size: 0.7rem;
+        }
+    }
+    
+    /* Экстремально маленькие телефоны (320px - 400px) */
+    @media (max-width: 360px) {
+        .profile-header h3 {
+            font-size: 0.85rem;
+        }
+        
+        .profile-header p {
+            font-size: 0.7rem;
+        }
+        
+        .info-label {
+            font-size: 0.65rem;
+        }
+        
+        .info-value {
+            font-size: 0.65rem;
+        }
+        
+        .section-header h3 {
+            font-size: 0.85rem;
+        }
+        
+        .orders-table th,
+        .orders-table td {
+            padding: 6px 8px;
+            font-size: 0.65rem;
+        }
+        
+        .orders-table th {
+            font-size: 0.6rem;
+        }
+        
+        .orders-table {
+            min-width: 280px;
+        }
+        
+        .status {
+            padding: 2px 5px;
+            font-size: 0.55rem;
+        }
+        
+        .empty-icon {
+            font-size: 2rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.75rem;
+        }
+        
+        .empty-state .btn-sm {
+            padding: 6px 15px;
+            font-size: 0.75rem;
+        }
+    }
+    
+    /* Супер маленькие телефоны (до 320px) */
+    @media (max-width: 320px) {
+        .profile-page {
+            padding: 15px 0;
+        }
+        
+        .profile-header {
+            padding: 12px;
+        }
+        
+        .profile-avatar {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .profile-header h3 {
+            font-size: 0.8rem;
+        }
+        
+        .profile-header p {
+            font-size: 0.65rem;
+        }
+        
+        .profile-info {
+            padding: 10px;
+        }
+        
+        .info-row {
+            padding: 6px 0;
+        }
+        
+        .info-label {
+            font-size: 0.6rem;
+        }
+        
+        .info-value {
+            font-size: 0.6rem;
+        }
+        
+        .profile-actions {
+            padding: 10px 12px 12px;
+        }
+        
+        .profile-actions .btn {
+            padding: 6px 12px;
+            font-size: 0.7rem;
+        }
+        
+        .section-header {
+            padding: 8px 12px;
+        }
+        
+        .section-header h3 {
+            font-size: 0.8rem;
+        }
+        
+        .orders-table th,
+        .orders-table td {
+            padding: 5px 6px;
+            font-size: 0.6rem;
+        }
+        
+        .orders-table th {
+            font-size: 0.55rem;
+        }
+        
+        .orders-table {
+            min-width: 260px;
+        }
+        
+        .status {
+            padding: 1px 4px;
+            font-size: 0.5rem;
+        }
+        
+        .empty-icon {
+            font-size: 1.5rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.7rem;
+            margin-bottom: 12px;
+        }
+        
+        .empty-state .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.65rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section profile-page">
+    <div class="container">
+        <h1 style="margin-bottom: 40px;">Мой профиль</h1>
+        
+        <div class="profile-grid">
+            <!-- Информация о пользователе -->
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        👤
+                    </div>
+                    <h3>{{ user.get_full_name|default:user.username }}</h3>
+                    <p>Зарегистрирован {{ user.date_joined|date:"d.m.Y" }}</p>
+                </div>
+                <div class="profile-info">
+                    <div class="info-row">
+                        <span class="info-label">Имя пользователя</span>
+                        <span class="info-value">{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value">{{ user.email }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Телефон</span>
+                        <span class="info-value">{{ profile.phone|default:"Не указан" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Адрес доставки</span>
+                        <span class="info-value">{{ profile.address|default:"Не указан" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Дата регистрации</span>
+                        <span class="info-value">{{ user.date_joined|date:"d.m.Y" }}</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <a href="{% url 'users:edit_profile' %}" class="btn btn-primary">Редактировать</a>
+                    <a href="{% url 'core:home' %}" class="btn btn-secondary">На главную</a>
+                </div>
+            </div>
+            
+            <!-- Заказы и бронирования -->
+            <div class="orders-section">
+                <!-- Мои заказы -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>📋 Мои заказы</h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <!-- <th>№</th> -->
+                                    <th>Дата</th>
+                                    <th>Сумма</th>
+                                    <th>Статус</th>
+                                 </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <!-- <td><strong>#{{ order.id }}</strong></td> -->
+                                    <td>{{ order.order_date|date:"d.m.Y H:i" }}</td>
+                                    <td>{{ order.total_amount }} ₽</td>
+                                    <td>
+                                        <span class="status status-{{ order.status }}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4">
+                                        <div class="empty-state">
+                                            <div class="empty-icon">🛒</div>
+                                            <p>У вас пока нет заказов</p>
+                                            <a href="{% url 'menu:menu_list' %}" class="btn btn-primary btn-sm">Перейти в меню</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Мои бронирования -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>📅 Мои бронирования</h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Время</th>
+                                    <th>Гостей</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in reservations %}
+                                <tr>
+                                    <td>{{ reservation.reservation_date|date:"d.m.Y" }}</td>
+                                    <td>{{ reservation.reservation_time|time:"H:i" }}</td>
+                                    <td>{{ reservation.guest_count }} чел.</td>
+                                    <td>
+                                        <span class="status status-{{ reservation.status }}">
+                                            {{ reservation.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4">
+                                        <div class="empty-state">
+                                            <div class="empty-icon">📅</div>
+                                            <p>У вас пока нет бронирований</p>
+                                            <a href="{% url 'bookings:booking' %}" class="btn btn-primary btn-sm">Забронировать столик</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
