@@ -1,16 +1,26 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Загружаем переменные окружения из .env (для локальной разработки)
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8x9k3m2p1n0b7v6c5x4z3a2s1d0f9g8h7j6k5l4m3n2b1v0c9x8z7a6s5d4f3'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-8x9k3m2p1n0b7v6c5x4z3a2s1d0f9g8h7j6k5l4m3n2b1v0c9x8z7a6s5d4f3')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.onrender.com',  # разрешаем все поддомены render.com
+    'mercury-restaurant.com',  # ваш домен
+    'www.mercury-restaurant.com',
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -22,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'crispy_forms',
     'crispy_bootstrap5',
+    'whitenoise.runserver_nostatic',  # для раздачи статики через WhiteNoise
     'dashboard',
     'core',
     'menu',
@@ -33,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise для статики
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -54,7 +66,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context_processors.cart_count',  # для счетчика корзины
+                'core.context_processors.cart_count',
             ],
         },
     },
@@ -62,21 +74,41 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mercury_project.wsgi.application'
 
+# База данных: поддерживает PostgreSQL (через DATABASE_URL), SQLite, MySQL
+# Приоритет: DATABASE_URL (Render) -> MySQL -> SQLite
+import dj_database_url
 
 DATABASES = {
-    'default': {
+    'default': {}
+}
+
+if os.getenv('DATABASE_URL'):
+    # Для PostgreSQL на Render
+    DATABASES['default'] = dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+elif os.getenv('DB_NAME'):
+    # MySQL (если переменные заданы)
+    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'restaurant_mercury',
-        'USER': 'root',
-        'PASSWORD': '',  
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
         }
     }
-}
+else:
+    # SQLite по умолчанию (для локальной разработки без БД)
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -96,8 +128,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
+# Media files (загруженные пользователями файлы)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -110,5 +143,4 @@ LOGOUT_REDIRECT_URL = '/'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
