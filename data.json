@@ -1,24 +1,6 @@
 [
 {
   "model": "auth.user",
-  "pk": 3,
-  "fields": {
-    "password": "pbkdf2_sha256$1200000$jdmmCH9oFK60zKy2Zc1dQt$wxjs0tO4Q8E7CfLPrL+i8wTPOGu5i3B6hiaKkWYNTyI=",
-    "last_login": "2026-04-01T14:35:16.985Z",
-    "is_superuser": false,
-    "username": "Denis",
-    "first_name": "",
-    "last_name": "",
-    "email": "ferczu72@gmail.com",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2026-04-01T12:59:28.762Z",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "auth.user",
   "pk": 4,
   "fields": {
     "password": "pbkdf2_sha256$1200000$aVASxbVrcKqTEMcXZFTZnd$hYyPmhzVBDJl6JofWrJnAz88ac1wHRks5p5WwaD/iaU=",
@@ -4326,18 +4308,7 @@
     "is_active": true
   }
 },
-{
-  "model": "users.profile",
-  "pk": 3,
-  "fields": {
-    "user": [
-      "Denis"
-    ],
-    "phone": "",
-    "address": "",
-    "avatar": ""
-  }
-},
+
 {
   "model": "users.profile",
   "pk": 4,
