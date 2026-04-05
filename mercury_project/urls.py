@@ -1,21 +1,17 @@
-from django.urls import path, include
+from django.urls import path, include, reverse
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
-from django.contrib.sitemaps import views as sitemap_views
-from django.urls import reverse
-
-# Импорт моделей для sitemap
+from django.contrib.sitemaps import Sitemap
+from django.contrib.sitemaps.views import sitemap as sitemap_view
 from menu.models import Dish, Category
 
-
-class StaticViewSitemap:
+class StaticViewSitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.8
 
     def items(self):
-        # Список URL-имён для статических страниц
         return [
             'core:home',
             'menu:menu_list',
@@ -28,26 +24,19 @@ class StaticViewSitemap:
     def location(self, item):
         return reverse(item)
 
-
-class DishSitemap:
+class DishSitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.9
 
     def items(self):
         return Dish.objects.filter(is_available=True)
 
-    def lastmod(self, obj):
-        # Если у модели Dish есть поле updated_at, иначе вернёт None
-        return getattr(obj, 'updated_at', None)
-
-
-class CategorySitemap:
+class CategorySitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.8
 
     def items(self):
         return Category.objects.all()
-
 
 sitemaps = {
     'static': StaticViewSitemap,
@@ -55,10 +44,8 @@ sitemaps = {
     'categories': CategorySitemap,
 }
 
-
 urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
-    # path('admin/', admin_site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', include('core.urls')),
     path('menu/', include('menu.urls')),
@@ -66,9 +53,7 @@ urlpatterns = [
     path('bookings/', include('bookings.urls')),
     path('reviews/', include('reviews.urls')),
     path('accounts/', include('users.urls')),
-    # Карта сайта
-    path('sitemap.xml', sitemap_views.sitemap, {'sitemaps': sitemaps},
-         name='django.contrib.sitemaps.views.sitemap'),
+    path('sitemap.xml', sitemap_view, {'sitemaps': sitemaps}, name='sitemap'),
 ]
 
 urlpatterns += [
