@@ -5,6 +5,7 @@ from django.views.static import serve
 from django.urls import re_path
 from django.contrib.sitemaps import Sitemap
 from django.contrib.sitemaps.views import sitemap as sitemap_view
+from menu.models import Dish
 
 
 class StaticViewSitemap(Sitemap):
@@ -12,7 +13,6 @@ class StaticViewSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        # Проверьте, что все эти URL-имена существуют
         return [
             'core:home',
             'menu:menu_list',
@@ -26,8 +26,24 @@ class StaticViewSitemap(Sitemap):
         return reverse(item)
 
 
+class DishSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.9
+
+    def items(self):
+        return Dish.objects.filter(is_available=True)
+
+    # Если у модели Dish нет метода get_absolute_url, нужно указать location явно
+    def location(self, obj):
+        # Предположим, что у вас есть URL-имя 'menu:dish_detail' и используется pk или slug
+        # Замените 'menu:dish_detail' на актуальное имя URL для детальной страницы блюда
+        # Если такой страницы нет, то sitemap для блюд не нужен
+        return reverse('menu:dish_detail', args=[obj.id])
+
+
 sitemaps = {
     'static': StaticViewSitemap,
+    'dishes': DishSitemap,
 }
 
 urlpatterns = [
