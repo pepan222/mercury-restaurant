@@ -1,5 +1,4 @@
 import os
-import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -34,7 +33,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'whitenoise.runserver_nostatic',
-    'storages',                     # для облачного хранения
+    # 'storages',                    # временно отключаем облачное хранение
     'dashboard',
     'core',
     'menu',
@@ -122,91 +121,15 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ==================== НАСТРОЙКИ CLOUD.RU OBJECT STORAGE ====================
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('CLOUD_SECRET_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('CLOUD_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = 'https://s3.cloud.ru'
-
-# Принудительно указываем использование S3 для медиафайлов
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# Настройки хранилищ
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            "access_key": AWS_ACCESS_KEY_ID,
-            "secret_key": AWS_SECRET_ACCESS_KEY,
-            "bucket_name": AWS_STORAGE_BUCKET_NAME,
-            "endpoint_url": AWS_S3_ENDPOINT_URL,
-            "region_name": "ru-msk-1",
-            "default_acl": "public-read",
-            "querystring_auth": False,
-            "signature_version": "s3v4",
-            "addressing_style": "path",
-        },
-    },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
-
-# Базовый URL для медиа-файлов
+# Media files (локальное хранение)
 MEDIA_URL = '/media/'
-
-# Дополнительные параметры для загружаемых файлов
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-    'ACL': 'public-read',
-}
-
-AWS_QUERYSTRING_AUTH = False
-# ==================== КОНЕЦ НАСТРОЕК ОБЛАКА ====================
-
-# ==================== ЛОГИРОВАНИЕ ДЛЯ ОТЛАДКИ ====================
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'storages': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-        'boto3': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-        'botocore': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-}
-# ==================== КОНЕЦ ЛОГИРОВАНИЯ ====================
-
-# ==================== ОТЛАДКА НАСТРОЕК S3 ====================
-# Этот блок выполнится при запуске gunicorn (и в логах деплоя)
-print("\n=== S3 CONFIGURATION DEBUG ===")
-print(f"AWS_ACCESS_KEY_ID: {AWS_ACCESS_KEY_ID[:30] if AWS_ACCESS_KEY_ID else 'NOT SET'}...")
-print(f"AWS_SECRET_ACCESS_KEY: {'SET' if AWS_SECRET_ACCESS_KEY else 'NOT SET'}")
-print(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
-print(f"AWS_S3_ENDPOINT_URL: {AWS_S3_ENDPOINT_URL}")
-print(f"DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
-print(f"STORAGES default backend: {STORAGES['default']['BACKEND']}")
-print("=============================\n")
-# ==================== КОНЕЦ ОТЛАДКИ ====================
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Login URLs
 LOGIN_URL = '/accounts/login/'
