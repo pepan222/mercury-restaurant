@@ -17,8 +17,8 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    '.onrender.com',  # разрешаем все поддомены render.com
-    'mercury-restaurant.com',  # ваш домен
+    '.onrender.com',
+    'mercury-restaurant.com',
     'www.mercury-restaurant.com',
 ]
 
@@ -32,7 +32,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'crispy_forms',
     'crispy_bootstrap5',
-    'whitenoise.runserver_nostatic',  # для раздачи статики через WhiteNoise
+    'whitenoise.runserver_nostatic',
+    'storages',                     # <-- ДОБАВЛЕНО для облачного хранения
     'dashboard',
     'core',
     'menu',
@@ -44,7 +45,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise для статики
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,8 +75,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mercury_project.wsgi.application'
 
-# База данных: поддерживает PostgreSQL (через DATABASE_URL), SQLite, MySQL
-# Приоритет: DATABASE_URL (Render) -> MySQL -> SQLite
+# База данных (без изменений)
 import dj_database_url
 
 DATABASES = {
@@ -83,14 +83,12 @@ DATABASES = {
 }
 
 if os.getenv('DATABASE_URL'):
-    # Для PostgreSQL на Render
     DATABASES['default'] = dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
         conn_health_checks=True,
     )
 elif os.getenv('DB_NAME'):
-    # MySQL (если переменные заданы)
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME'),
@@ -104,7 +102,6 @@ elif os.getenv('DB_NAME'):
         }
     }
 else:
-    # SQLite по умолчанию (для локальной разработки без БД)
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
@@ -124,15 +121,36 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Static files (без изменений)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files (загруженные пользователями файлы)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# ==================== НАСТРОЙКИ CLOUD.RU OBJECT STORAGE ====================
+# Переопределяем хранение медиафайлов на S3-совместимое облако
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# Параметры подключения (берутся из переменных окружения)
+AWS_ACCESS_KEY_ID = os.getenv('CLOUD_ACCESS_KEY')
+AWS_SECRET_ACCESS_KEY = os.getenv('CLOUD_SECRET_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('CLOUD_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.getenv('CLOUD_REGION', 'ru-msk-1')
+TENANT_ID = os.getenv('CLOUD_TENANT_ID')
+
+# Формируем endpoint с учётом tenant ID (если он нужен)
+if TENANT_ID:
+    AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.cloud.ru/{TENANT_ID}'
+else:
+    AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.cloud.ru'
+
+# Базовый URL для медиа-файлов (используется в шаблонах)
+MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+
+# Опционально: отключаем использование подписанных URL (для публичного доступа)
+AWS_QUERYSTRING_AUTH = False
+
+# ==================== КОНЕЦ НАСТРОЕК ОБЛАКА ====================
 
 # Login URLs
 LOGIN_URL = '/accounts/login/'
