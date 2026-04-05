@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'whitenoise.runserver_nostatic',
-    'storages',                     # <-- ДОБАВЛЕНО для облачного хранения
+    'storages',                     # для облачного хранения
     'dashboard',
     'core',
     'menu',
@@ -75,7 +75,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mercury_project.wsgi.application'
 
-# База данных (без изменений)
+# База данных
 import dj_database_url
 
 DATABASES = {
@@ -121,35 +121,56 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (без изменений)
+# Static files
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ==================== НАСТРОЙКИ CLOUD.RU OBJECT STORAGE ====================
-# Переопределяем хранение медиафайлов на S3-совместимое облако
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# Параметры подключения (берутся из переменных окружения)
+# Получаем параметры из переменных окружения
 AWS_ACCESS_KEY_ID = os.getenv('CLOUD_ACCESS_KEY')
 AWS_SECRET_ACCESS_KEY = os.getenv('CLOUD_SECRET_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('CLOUD_BUCKET_NAME')
-AWS_S3_REGION_NAME = os.getenv('CLOUD_REGION', 'ru-msk-1')
 TENANT_ID = os.getenv('CLOUD_TENANT_ID')
 
-# Формируем endpoint с учётом tenant ID (если он нужен)
-if TENANT_ID:
-    AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.cloud.ru/{TENANT_ID}'
-else:
-    AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.cloud.ru'
+# Эндпоинт для Cloud.ru (без региона в hostname, tenant ID добавляется в путь)
+# По документации Cloud.ru: https://s3.cloud.ru/{TENANT_ID}
+AWS_S3_ENDPOINT_URL = f'https://s3.cloud.ru/{TENANT_ID}'
 
-# Базовый URL для медиа-файлов (используется в шаблонах)
+# Настройки хранилищ (современный способ для Django 4.2+)
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "region_name": "ru-msk-1",  # или любой, но не критично для Cloud.ru
+            "default_acl": "public-read",
+            "querystring_auth": False,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+# Базовый URL для медиа-файлов (для формирования ссылок в шаблонах)
 MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
 
-# Опционально: отключаем использование подписанных URL (для публичного доступа)
+# Дополнительные параметры для загружаемых файлов
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+    'ACL': 'public-read',
+}
+
+# Отключаем подписанные URL (для публичного доступа)
 AWS_QUERYSTRING_AUTH = False
 
+# Удаляем старую переменную DEFAULT_FILE_STORAGE, чтобы не конфликтовать
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'  # не нужно, используется STORAGES
 # ==================== КОНЕЦ НАСТРОЕК ОБЛАКА ====================
 
 # Login URLs
