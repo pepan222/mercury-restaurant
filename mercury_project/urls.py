@@ -7,6 +7,7 @@ from django.contrib.sitemaps import Sitemap
 from django.contrib.sitemaps.views import sitemap as sitemap_view
 from menu.models import Dish, Category
 
+
 class StaticViewSitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.8
@@ -24,6 +25,7 @@ class StaticViewSitemap(Sitemap):
     def location(self, item):
         return reverse(item)
 
+
 class DishSitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.9
@@ -31,12 +33,14 @@ class DishSitemap(Sitemap):
     def items(self):
         return Dish.objects.filter(is_available=True)
 
+
 class CategorySitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.8
 
     def items(self):
         return Category.objects.all()
+
 
 sitemaps = {
     'static': StaticViewSitemap,
