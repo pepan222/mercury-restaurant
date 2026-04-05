@@ -134,10 +134,10 @@ AWS_SECRET_ACCESS_KEY = os.getenv('CLOUD_SECRET_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('CLOUD_BUCKET_NAME')
 AWS_S3_ENDPOINT_URL = 'https://s3.cloud.ru'
 
-# Принудительно указываем использование S3 для медиафайлов (для старых версий Django)
+# Принудительно указываем использование S3 для медиафайлов
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-# Настройки хранилищ (современный способ для Django 4.2+)
+# Настройки хранилищ
 STORAGES = {
     "default": {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
@@ -146,7 +146,7 @@ STORAGES = {
             "secret_key": AWS_SECRET_ACCESS_KEY,
             "bucket_name": AWS_STORAGE_BUCKET_NAME,
             "endpoint_url": AWS_S3_ENDPOINT_URL,
-            "region_name": "ru-msk-1",          # не критично
+            "region_name": "ru-msk-1",
             "default_acl": "public-read",
             "querystring_auth": False,
             "signature_version": "s3v4",
@@ -158,7 +158,7 @@ STORAGES = {
     },
 }
 
-# Базовый URL для медиа-файлов (storage сам подставит полный путь, поэтому оставляем просто '/media/')
+# Базовый URL для медиа-файлов
 MEDIA_URL = '/media/'
 
 # Дополнительные параметры для загружаемых файлов
@@ -195,6 +195,18 @@ LOGGING = {
     },
 }
 # ==================== КОНЕЦ ЛОГИРОВАНИЯ ====================
+
+# ==================== ОТЛАДКА НАСТРОЕК S3 ====================
+# Этот блок выполнится при запуске gunicorn (и в логах деплоя)
+print("\n=== S3 CONFIGURATION DEBUG ===")
+print(f"AWS_ACCESS_KEY_ID: {AWS_ACCESS_KEY_ID[:30] if AWS_ACCESS_KEY_ID else 'NOT SET'}...")
+print(f"AWS_SECRET_ACCESS_KEY: {'SET' if AWS_SECRET_ACCESS_KEY else 'NOT SET'}")
+print(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
+print(f"AWS_S3_ENDPOINT_URL: {AWS_S3_ENDPOINT_URL}")
+print(f"DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
+print(f"STORAGES default backend: {STORAGES['default']['BACKEND']}")
+print("=============================\n")
+# ==================== КОНЕЦ ОТЛАДКИ ====================
 
 # Login URLs
 LOGIN_URL = '/accounts/login/'
