@@ -1,4 +1,5 @@
 import os
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -128,19 +129,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ==================== НАСТРОЙКИ CLOUD.RU OBJECT STORAGE ====================
-# ВНИМАНИЕ! Переменные окружения должны быть:
-#   AWS_ACCESS_KEY_ID   = tenant_id:access_key (например, "97d67cc5-20f3-4b5a-81b9-15477565e497:a7d05ae4475004b0ecabd0d74ca1a7ce")
-#   AWS_SECRET_ACCESS_KEY = ваш секретный ключ (6c0024e726ef4e73c94c37cc1050b15d)
-#   AWS_STORAGE_BUCKET_NAME = mercury-media-ferczu
-#   CLOUD_TENANT_ID (опционально, не используется в коде, оставлен для справки)
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('CLOUD_SECRET_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('CLOUD_BUCKET_NAME')
-# TENANT_ID больше не нужен, так как он уже включён в AWS_ACCESS_KEY_ID
-# AWS_S3_ENDPOINT_URL = f'https://s3.cloud.ru/{TENANT_ID}' – убираем, используем стандартный endpoint
-
-# Эндпоинт для Cloud.ru (без tenant ID в пути, так как он уже в access key)
 AWS_S3_ENDPOINT_URL = 'https://s3.cloud.ru'
+
+# Принудительно указываем использование S3 для медиафайлов (для старых версий Django)
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Настройки хранилищ (современный способ для Django 4.2+)
 STORAGES = {
@@ -151,11 +146,11 @@ STORAGES = {
             "secret_key": AWS_SECRET_ACCESS_KEY,
             "bucket_name": AWS_STORAGE_BUCKET_NAME,
             "endpoint_url": AWS_S3_ENDPOINT_URL,
-            "region_name": "ru-msk-1",   # можно любой
+            "region_name": "ru-msk-1",          # не критично
             "default_acl": "public-read",
             "querystring_auth": False,
             "signature_version": "s3v4",
-            "addressing_style": "path",   # важно для Cloud.ru
+            "addressing_style": "path",
         },
     },
     "staticfiles": {
@@ -163,9 +158,8 @@ STORAGES = {
     },
 }
 
-# Базовый URL для медиа-файлов (используется в шаблонах)
-# Он должен вести на публичный endpoint бакета
-MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+# Базовый URL для медиа-файлов (storage сам подставит полный путь, поэтому оставляем просто '/media/')
+MEDIA_URL = '/media/'
 
 # Дополнительные параметры для загружаемых файлов
 AWS_S3_OBJECT_PARAMETERS = {
@@ -173,9 +167,34 @@ AWS_S3_OBJECT_PARAMETERS = {
     'ACL': 'public-read',
 }
 
-# Отключаем подписанные URL (для публичного доступа)
 AWS_QUERYSTRING_AUTH = False
 # ==================== КОНЕЦ НАСТРОЕК ОБЛАКА ====================
+
+# ==================== ЛОГИРОВАНИЕ ДЛЯ ОТЛАДКИ ====================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'storages': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'boto3': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'botocore': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
+# ==================== КОНЕЦ ЛОГИРОВАНИЯ ====================
 
 # Login URLs
 LOGIN_URL = '/accounts/login/'
