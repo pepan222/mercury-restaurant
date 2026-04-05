@@ -20,6 +20,8 @@ ALLOWED_HOSTS = [
     '.onrender.com',
     'mercury-restaurant.com',
     'www.mercury-restaurant.com',
+    'mercury-restaurant.ru',       # добавлено
+    'www.mercury-restaurant.ru',   # добавлено
 ]
 
 # Application definition
