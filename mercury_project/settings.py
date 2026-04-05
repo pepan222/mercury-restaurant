@@ -151,10 +151,11 @@ STORAGES = {
             "secret_key": AWS_SECRET_ACCESS_KEY,
             "bucket_name": AWS_STORAGE_BUCKET_NAME,
             "endpoint_url": AWS_S3_ENDPOINT_URL,
-            "region_name": "ru-msk-1",   # не используется, но требуется boto3
+            "region_name": "ru-msk-1",   # можно любой
             "default_acl": "public-read",
             "querystring_auth": False,
-            "signature_version": "s3v4",   # важно для Cloud.ru
+            "signature_version": "s3v4",
+            "addressing_style": "path",   # важно для Cloud.ru
         },
     },
     "staticfiles": {
