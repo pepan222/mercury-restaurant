@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block meta %}
+    {{ block.super }}
+    <meta name="description" content="Ресторан Меркурий в Батайске: русская, итальянская, японская, европейская и кавказская кухни. Бронирование столиков, доставка еды. Уютный зал, летняя веранда, банкетный зал.">
+    <meta property="og:title" content="Меркурий | Ресторан пяти кухонь в Батайске">
+    <meta property="og:description" content="Гастрономическое путешествие по пяти кухням мира в Батайске. Забронируйте столик или закажите доставку онлайн.">
+    <meta property="og:url" content="https://mercury-restaurant.ru/">
+    <link rel="canonical" href="https://mercury-restaurant.ru/">
+{% endblock %}
+
 {% block title %}Меркурий | Ресторан пяти кухонь в Батайске{% endblock %}
 
 {% block extra_css %}

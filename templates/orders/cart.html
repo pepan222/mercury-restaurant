@@ -1,8 +1,15 @@
 {% extends 'base.html' %}
-
-
-
 {% load static %}
+
+{% block meta %}
+    {{ block.super }}
+    <meta name="description" content="Корзина заказов ресторана Меркурий. Просмотр выбранных блюд, изменение количества, оформление заказа.">
+    <meta property="og:title" content="Корзина | Ресторан Меркурий">
+    <meta property="og:description" content="Ваш текущий заказ. Проверьте состав блюд и оформите доставку.">
+    <meta property="og:url" content="https://mercury-restaurant.ru/orders/cart/">
+    <link rel="canonical" href="https://mercury-restaurant.ru/orders/cart/">
+    <meta name="robots" content="noindex, follow">
+{% endblock %}
 
 {% block title %}Корзина | Ресторан Меркурий{% endblock %}
 

@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
+{% load static %}
 
-
+{% block meta %}
+    {{ block.super }}
+    <meta name="description" content="Онлайн-бронирование столиков в ресторане Меркурий. Выберите дату, время и количество гостей. Быстро и удобно.">
+    <meta property="og:title" content="Забронировать столик | Ресторан Меркурий">
+    <meta property="og:description" content="Забронируйте столик в ресторане пяти кухонь онлайн. Уютный зал, веранда, банкетный зал. Ждём вас!">
+    <meta property="og:url" content="https://mercury-restaurant.ru/bookings/">
+    <link rel="canonical" href="https://mercury-restaurant.ru/bookings/">
+{% endblock %}
 
 {% block title %}Бронирование столика | Ресторан Меркурий{% endblock %}
 

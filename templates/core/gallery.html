@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
-
-
-
 {% load static %}
+
+{% block meta %}
+    {{ block.super }}
+    <meta name="description" content="Фотогалерея ресторана Меркурий: интерьер залов, летняя веранда, банкетный зал, наши блюда и атмосфера.">
+    <meta property="og:title" content="Галерея | Ресторан Меркурий – фото интерьера и блюд">
+    <meta property="og:description" content="Посмотрите на уютную атмосферу нашего ресторана, банкетные залы и кулинарные шедевры. Вдохновляйтесь перед визитом.">
+    <meta property="og:url" content="https://mercury-restaurant.ru/gallery/">
+    <link rel="canonical" href="https://mercury-restaurant.ru/gallery/">
+{% endblock %}
 
 {% block title %}Галерея | Ресторан Меркурий{% endblock %}
 

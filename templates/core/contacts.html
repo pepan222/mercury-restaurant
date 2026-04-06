@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
-
-
-
 {% load static %}
+
+{% block meta %}
+    {{ block.super }}
+    <meta name="description" content="Контакты ресторана Меркурий в Батайске: адрес, телефон, часы работы, схема проезда. Бронирование по телефону +7 (928) 601-00-60.">
+    <meta property="og:title" content="Контакты | Ресторан Меркурий в Батайске">
+    <meta property="og:description" content="Как нас найти: ул. Белорусская, 113. Звоните: +7 (928) 601-00-60. Ежедневно с 12:00 до 00:00. Ждём вас!">
+    <meta property="og:url" content="https://mercury-restaurant.ru/contacts/">
+    <link rel="canonical" href="https://mercury-restaurant.ru/contacts/">
+{% endblock %}
 
 {% block title %}Контакты | Ресторан Меркурий{% endblock %}
 

@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
-
-
-
 {% load static %}
+
+{% block meta %}
+    {{ block.super }}
+    <meta name="description" content="Меню ресторана Меркурий: блюда русской, итальянской, японской, европейской и кавказской кухонь. Цены, состав, фото. Заказ онлайн.">
+    <meta property="og:title" content="Меню | Ресторан Меркурий – 5 кухонь мира">
+    <meta property="og:description" content="Ознакомьтесь с нашим разнообразным меню. Роллы, пицца, паста, шашлык, суши, авторские блюда и многое другое.">
+    <meta property="og:url" content="https://mercury-restaurant.ru/menu/">
+    <link rel="canonical" href="https://mercury-restaurant.ru/menu/">
+{% endblock %}
 
 {% block title %}Меню | Ресторан Меркурий{% endblock %}
 
