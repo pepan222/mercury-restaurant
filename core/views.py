@@ -16,7 +16,7 @@ def home(request):
     
     # Популярные блюда
     featured_dishes = Dish.objects.filter(is_available=True).annotate(
-        total_ordered=Sum('orderitem__quantity')
+        total_ordered=Sum('orderitem_set__quantity')
     ).order_by('-total_ordered', '-id')[:4]
     
     if not featured_dishes:
