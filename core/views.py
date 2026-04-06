@@ -1,22 +1,20 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Value
 from menu.models import Category, Dish
 from reviews.models import Review
+from django.db.models.functions import Coalesce
 
 
 def home(request):
     """Главная страница"""
-    # Получаем 5 категорий для показа
     categories = Category.objects.all()[:5]
-    
-    # Получаем ОПУБЛИКОВАННЫЕ отзывы
     all_reviews = list(Review.objects.filter(is_published=True).order_by('-created_at'))
     
-    # Популярные блюда
+    # Популярные блюда – исправлено!
     featured_dishes = Dish.objects.filter(is_available=True).annotate(
-        total_ordered=Sum('orderitem_set__quantity')
+        total_ordered=Coalesce(Sum('orderitem__quantity'), Value(0))
     ).order_by('-total_ordered', '-id')[:4]
     
     if not featured_dishes:
