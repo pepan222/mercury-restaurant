@@ -122,7 +122,7 @@ def dish_detail(request, dish_id):
             'weight': dish.weight or 'не указан',
             'category': dish.category.name,
             'subcategory': dish.subcategory.name if dish.subcategory else None,
-            'image_url': dish.image.url if dish.image else '/static/images/logo.png',
+            'image_url': dish.get_image_url() if dish.image else '/static/images/logo.png',
         }
         return JsonResponse(data)
     
