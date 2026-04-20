@@ -95,5 +95,8 @@ class Dish(models.Model):
     
     def get_image_url(self):
         if self.image:
-            return self.image.url
-        return '/static/images/logo.png'  # заглушка, если нет фото
+            url = self.image.url
+            if url.startswith('http://'):
+                url = url.replace('http://', 'https://', 1)
+            return url
+        return '/static/images/logo.png'
