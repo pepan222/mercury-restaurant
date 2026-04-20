@@ -73,7 +73,11 @@ class Dish(models.Model):
     weight = models.CharField('Вес', max_length=50, blank=True, null=True)
     is_available = models.BooleanField('Доступно для заказа', default=True, db_index=True)
     order = models.IntegerField('Порядок сортировки', default=0, db_index=True)
-    image = CloudinaryField('dishes', blank=True, null=True, verbose_name='Фото блюда')
+    image = CloudinaryField(
+        blank=True,
+        null=True,
+        verbose_name='Фото блюда'
+    )
     
     class Meta:
         db_table = 'dish'
