@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+from cloudinary.models import CloudinaryField
 
 class Category(models.Model):
     name = models.CharField('Название', max_length=100, unique=True, db_index=True)
@@ -72,7 +73,7 @@ class Dish(models.Model):
     weight = models.CharField('Вес', max_length=50, blank=True, null=True)
     is_available = models.BooleanField('Доступно для заказа', default=True, db_index=True)
     order = models.IntegerField('Порядок сортировки', default=0, db_index=True)
-    image = models.ImageField('Фото блюда', upload_to='dishes/', blank=True, null=True, help_text='Загрузите фото блюда')
+    image = CloudinaryField('dishes', blank=True, null=True, verbose_name='Фото блюда')
     
     class Meta:
         db_table = 'dish'
