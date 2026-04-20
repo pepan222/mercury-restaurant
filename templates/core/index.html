@@ -785,7 +785,7 @@
             <div class="featured-dish-item" data-dish-id="{{ dish.id }}" onclick="openDishModal(this.getAttribute('data-dish-id'))">
                 <div class="featured-dish-image">
                     {% if dish.image %}
-                    <img src="{{ dish.image.url }}" alt="{{ dish.name }}" loading="lazy">
+                    <img src="{{ dish.get_image_url }}" alt="{{ dish.name }}" loading="lazy">
                     {% else %}
                     <div class="placeholder-logo">
                         <img src="{% static 'images/logo.png' %}" alt="Меркурий">
