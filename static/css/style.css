@@ -279,7 +279,8 @@ h3 {
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
     background-size: cover;
-    background-position: center;
+    background-position: center center;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     text-align: center;
@@ -290,13 +291,24 @@ h3 {
 }
 
 .slide-1 {
-    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/slader1.jpg');}
+    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/slader1.jpg');
+}
 
 .slide-2 {
-    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/slader2.png');}
+    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/slader2.png');
+}
 
 .slide-3 {
-    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/slader3.jpg');}
+    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/slader3.jpg');
+}
+
+/* Для очень широких экранов (более 1920px) — чтобы картинка не растягивалась по высоте */
+@media (min-width: 1920px) {
+    .slide {
+        background-size: contain;
+        background-color: #1a1a1a;
+    }
+}
 
 .slide-content {
     max-width: 600px;
