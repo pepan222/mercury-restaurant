@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.db.models import Q
 from .models import Category, Subcategory, Dish
@@ -9,6 +9,13 @@ def menu_list(request):
     # Получаем параметры фильтрации
     selected_category_id = request.GET.get('category')
     selected_subcategory_id = request.GET.get('subcategory')
+
+    # Если нет ни одного параметра фильтрации - редиректим на категорию "Русская кухня"
+    if not selected_category_id and not selected_subcategory_id:
+        # Ищем категорию "Русская кухня" по имени (можно заменить на точное совпадение)
+        russian_category = Category.objects.filter(name__icontains='Русская').first()
+        if russian_category:
+            return redirect(f'{request.path}?category={russian_category.id}')
     
     # Получаем все категории
     categories = Category.objects.order_by('order').all()
