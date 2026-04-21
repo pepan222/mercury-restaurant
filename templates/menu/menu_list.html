@@ -382,7 +382,7 @@
         <!-- ОБЫЧНЫЙ РЕЖИМ (группировка по категориям) -->
         <div class="category-tabs">
             {% for cat in categories_data %}
-            <button class="category-tab {% if selected_category_id and cat.id|stringformat:"s" == selected_category_id %}active{% elif forloop.first and not selected_category_id %}active{% endif %}" data-category="{{ cat.id }}">
+            <button class="category-tab {% if forloop.first %}active{% endif %}" data-category="{{ cat.id }}">
                 {{ cat.name }}
             </button>
             {% endfor %}
@@ -1253,14 +1253,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        // Ищем активную вкладку (уже помеченную классом active) или первую
-        const activeTab = document.querySelector('.category-tab.active');
-        if (activeTab) {
-            activeTab.click();
-        } else {
-            const firstTab = document.querySelector('.category-tab');
-            if (firstTab) firstTab.click();
-        }
+        const firstTab = document.querySelector('.category-tab');
+        if (firstTab) firstTab.click();
     }
     
     // Переключение подкатегорий на десктопе
