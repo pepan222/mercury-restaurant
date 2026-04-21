@@ -280,7 +280,7 @@ h3 {
 /* Для экранов шире 1500px – высота 450px */
 @media (min-width: 1501px) {
     .hero {
-        height: 450px !important;
+        height: 650px !important;
     }
 }
 
