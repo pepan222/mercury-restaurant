@@ -17,7 +17,7 @@ def menu_list(request):
     russian_category = None
     other_categories = []
     for cat in categories:
-        if 'русская' in cat.name.lower():
+        if 'Русская' in cat.name.lower():
             russian_category = cat
         else:
             other_categories.append(cat)
