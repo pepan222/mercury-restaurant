@@ -266,8 +266,8 @@ h3 {
 /* ========== СЛАЙДЕР ========== */
 .hero {
     position: relative;
-    aspect-ratio: 16 / 9;   /* динамическая высота, пропорциональная ширине */
-    height: auto;            /* отключаем фиксированную высоту */
+    aspect-ratio: 32 / 9;   /* высота в два раза меньше, чем 16/9 */
+    height: auto;
     overflow: hidden;
 }
 
@@ -303,10 +303,10 @@ h3 {
     background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/slader3.jpg');
 }
 
-/* На мобильных устройствах можно изменить пропорции, если нужно */
+/* На мобильных устройствах можно оставить 4/3 (или тоже уменьшить, если нужно) */
 @media (max-width: 768px) {
     .hero {
-        aspect-ratio: 4 / 3;   /* например, 4:3 для телефонов */
+        aspect-ratio: 4 / 3;
     }
 }
 
@@ -1250,10 +1250,6 @@ h3 {
         width: 100%;
     }
     
-    .hero {
-        /* убираем переопределение высоты, оставляем aspect-ratio */
-    }
-    
     .slide h1 {
         font-size: 1.8rem;
     }
@@ -1328,10 +1324,6 @@ h3 {
         font-size: 0.5rem;
         margin-top: 15px;
         padding-top: 8px;
-    }
-    
-    .hero {
-        /* сохраняем aspect-ratio, можно изменить для телефонов, но оставим 16/9 */
     }
     
     .slide h1 {
