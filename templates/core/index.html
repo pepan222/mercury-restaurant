@@ -86,13 +86,19 @@
         overflow: hidden;
     }
     
+    /* Блок с ценой и кнопкой */
+    .featured-dish-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        white-space: nowrap;
+    }
+    
     .featured-dish-price {
         font-weight: 700;
         font-size: 1.2rem;
         color: #800020;
         white-space: nowrap;
-        min-width: 80px;
-        text-align: right;
     }
     
     .add-to-cart-btn {
@@ -379,6 +385,14 @@
         .featured-dish-desc {
             font-size: 0.7rem;
         }
+        .featured-dish-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 8px;
+        }
         .featured-dish-price {
             font-size: 0.95rem;
         }
@@ -474,10 +488,6 @@
         }
         .featured-dish-info h4 {
             font-size: 0.85rem;
-        }
-        .featured-dish-price {
-            font-size: 0.85rem;
-            min-width: 70px;
         }
         .hero .slide-content .btn-gold {
             padding: 8px 20px;
@@ -816,8 +826,10 @@
                     <h4>{{ dish.name }}</h4>
                     <div class="featured-dish-desc">{{ dish.description|default:"Описание отсутствует"|truncatechars:70 }}</div>
                 </div>
-                <div class="featured-dish-price">{{ dish.price }}₽</div>
-                <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                <div class="featured-dish-actions">
+                    <span class="featured-dish-price">{{ dish.price }}₽</span>
+                    <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                </div>
             </div>
             {% empty %}
             <p>Блюда временно отсутствуют</p>

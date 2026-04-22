@@ -367,8 +367,10 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="menu-item-price">{{ dish.price }}₽</div>
-                    <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                    <div class="menu-item-actions">
+                        <span class="menu-item-price">{{ dish.price }}₽</span>
+                        <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                    </div>
                 </div>
                 {% empty %}
                 <div class="empty-menu">
@@ -435,8 +437,10 @@
                             <div class="menu-item-weight">Порция: {{ dish.weight }}</div>
                             {% endif %}
                         </div>
-                        <div class="menu-item-price">{{ dish.price }}₽</div>
-                        <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                        <div class="menu-item-actions">
+                            <span class="menu-item-price">{{ dish.price }}₽</span>
+                            <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
@@ -463,8 +467,10 @@
                             <div class="menu-item-weight">Порция: {{ dish.weight }}</div>
                             {% endif %}
                         </div>
-                        <div class="menu-item-price">{{ dish.price }}₽</div>
-                        <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                        <div class="menu-item-actions">
+                            <span class="menu-item-price">{{ dish.price }}₽</span>
+                            <button class="add-to-cart-btn" data-id="{{ dish.id }}" data-name="{{ dish.name }}" onclick="event.stopPropagation(); handleAddToCart(this, {{ dish.id }}, 1)">В корзину</button>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
@@ -679,13 +685,19 @@
     margin-top: 5px;
 }
 
+/* Блок с ценой и кнопкой */
+.menu-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    white-space: nowrap;
+}
+
 .menu-item-price {
     font-weight: 700;
     font-size: 1.2rem;
     color: #800020;
     white-space: nowrap;
-    min-width: 80px;
-    text-align: right;
 }
 
 .add-to-cart-btn {
@@ -895,8 +907,6 @@
     
     .menu-item-price {
         font-size: 1rem;
-        min-width: 70px;
-        flex-shrink: 0;
     }
     
     .category-tabs {
@@ -1013,13 +1023,18 @@
         margin-top: 3px;
     }
     
+    .menu-item-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        margin-top: 5px;
+    }
+    
     .menu-item-price {
         font-size: 0.95rem;
-        margin-top: 5px;
-        text-align: left;
-        white-space: normal;
-        display: inline-block;
-        min-width: auto;
+        white-space: nowrap;
     }
     
     .menu-item-meta {
