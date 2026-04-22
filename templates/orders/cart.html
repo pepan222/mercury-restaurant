@@ -26,7 +26,7 @@
                     {% if item.dish.image %}
                     <img src="{{ item.dish.image.url }}" alt="{{ item.dish.name }}">
                     {% else %}
-                    <img src="{% static 'images/logo.png' %}" alt="Меркурий">
+                    <img src="{% static 'images/logo.png' %}" alt="Меркурий" class="placeholder-logo-cart">
                     {% endif %}
                 </div>
                 <div class="cart-item-details">
@@ -125,6 +125,15 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+/* Исправление для заглушки-логотипа */
+.cart-item-image img.placeholder-logo-cart,
+.cart-item-image img[src*="logo.png"] {
+    object-fit: contain;
+    background-color: #f5f5f5;
+    padding: 8px;
+    box-sizing: border-box;
 }
 
 .cart-item-details {
@@ -437,7 +446,6 @@
         font-size: 1.1rem;
     }
     
-    /* Кнопки не на всю ширину */
     .cart-actions {
         justify-content: flex-end;
     }
@@ -529,7 +537,6 @@
         font-size: 1.1rem;
     }
     
-    /* Кнопки: не на всю ширину, располагаем рядом */
     .cart-actions {
         gap: 12px;
         justify-content: flex-end;
@@ -549,9 +556,8 @@
     }
 }
 
-/* Маленькие телефоны (480px и меньше) - здесь кнопки становятся в колонку */
+/* Маленькие телефоны (480px и меньше) */
 @media (max-width: 480px) {
-    /* Кнопки в колонку, но не на всю ширину, а по центру */
     .cart-actions {
         flex-direction: column;
         align-items: center;
