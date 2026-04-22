@@ -1,6 +1,5 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from django.db.models import Q
 from .models import Category, Subcategory, Dish
 
 def menu_list(request):
@@ -9,6 +8,12 @@ def menu_list(request):
     # Получаем параметры фильтрации
     selected_category_id = request.GET.get('category')
     selected_subcategory_id = request.GET.get('subcategory')
+    
+    # Если нет параметра category, подставляем ID категории "Русская кухня"
+    if not selected_category_id and not selected_subcategory_id:
+        russian_category = Category.objects.filter(name__icontains='Русская').first()
+        if russian_category:
+            selected_category_id = str(russian_category.id)
     
     # Получаем все категории
     categories = Category.objects.order_by('order').all()
@@ -29,52 +34,48 @@ def menu_list(request):
     
     unique_subcategories = list(subcategories_by_name.values())
     
-    # Фильтрация блюд
-    dishes_query = Dish.objects.filter(is_available=True).select_related('category', 'subcategory')
-    
+    # --------------------------------------------
+    # РЕЖИМ ПЛОСКОГО СПИСКА (если выбран фильтр по подкатегории)
+    # --------------------------------------------
     selected_subcategory_name = None
-    
-    if selected_category_id and selected_category_id.isdigit():
-        dishes_query = dishes_query.filter(category_id=selected_category_id)
-    
     if selected_subcategory_id and selected_subcategory_id.isdigit():
         selected_sub = Subcategory.objects.filter(id=selected_subcategory_id).first()
         if selected_sub:
             selected_subcategory_name = selected_sub.name
-            # Ищем все блюда, у которых подкатегория имеет такое же название (из любой категории)
-            dishes_query = dishes_query.filter(subcategory__name=selected_sub.name)
+            # Фильтруем блюда по подкатегории (по названию, без учёта категории)
+            dishes_query = Dish.objects.filter(
+                is_available=True,
+                subcategory__name=selected_sub.name
+            ).select_related('category', 'subcategory')
+            flat_dishes = dishes_query.order_by('name', 'category__order')
+            context = {
+                'categories_data': [],  # Пустой список, чтобы не показывать категории
+                'flat_dishes': flat_dishes,
+                'is_filtered_by_subcategory': True,
+                'selected_subcategory_name': selected_subcategory_name,
+                'unique_subcategories': unique_subcategories,
+                'selected_subcategory_id': selected_subcategory_id,
+            }
+            return render(request, 'menu/menu_list.html', context)
     
-    # Если выбран фильтр по подкатегории, показываем плоский список
-    if selected_subcategory_id and selected_subcategory_name:
-        flat_dishes = dishes_query.order_by('name', 'category__order')
-        
-        context = {
-            'categories_data': [],  # Пустой список, чтобы не показывать категории
-            'flat_dishes': flat_dishes,
-            'is_filtered_by_subcategory': True,
-            'selected_subcategory_name': selected_subcategory_name,
-            'unique_subcategories': unique_subcategories,
-            'selected_subcategory_id': selected_subcategory_id,
-        }
-        return render(request, 'menu/menu_list.html', context)
+    # --------------------------------------------
+    # ОБЫЧНЫЙ РЕЖИМ (группировка по категориям)
+    # --------------------------------------------
+    # Берём ВСЕ доступные блюда (без фильтрации по категории)
+    all_dishes = Dish.objects.filter(is_available=True).select_related('category', 'subcategory')
     
-    # Обычный режим (группировка по категориям)
     from collections import defaultdict
     dishes_by_category = defaultdict(list)
-    for dish in dishes_query.order_by('category__order', 'subcategory__order', 'order'):
+    for dish in all_dishes.order_by('category__order', 'subcategory__order', 'order'):
         dishes_by_category[dish.category.id].append(dish)
     
     categories_data = []
     for cat in categories:
         cat_dishes = dishes_by_category.get(cat.id, [])
-        
         if not cat_dishes:
-            continue
-            
+            continue   # если у категории нет блюд – пропускаем (таб не показываем)
         subcategories = Subcategory.objects.filter(category=cat).order_by('order')
-        
         dishes_without = [d for d in cat_dishes if not d.subcategory]
-        
         subcategories_data = []
         for sub in subcategories:
             sub_dishes = [d for d in cat_dishes if d.subcategory and d.subcategory.id == sub.id]
@@ -84,7 +85,6 @@ def menu_list(request):
                     'name': sub.name,
                     'dishes': sub_dishes
                 })
-        
         categories_data.append({
             'id': cat.id,
             'name': cat.name,
@@ -96,7 +96,7 @@ def menu_list(request):
     context = {
         'categories_data': categories_data,
         'unique_subcategories': unique_subcategories,
-        'selected_category_id': selected_category_id,
+        'selected_category_id': selected_category_id,   # передаём для подсветки вкладки
         'selected_subcategory_id': selected_subcategory_id,
         'is_filtered_by_subcategory': False,
         'flat_dishes': [],
@@ -105,14 +105,11 @@ def menu_list(request):
 
 def menu_by_category(request, category_slug):
     """Меню по категории"""
-    category = get_object_or_404(Category, slug=category_slug)
     return menu_list(request)
 
 def dish_detail(request, dish_id):
     """Получение детальной информации о блюде (поддерживает AJAX)"""
     dish = get_object_or_404(Dish, id=dish_id, is_available=True)
-    
-    # Если запрос AJAX, возвращаем JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         data = {
             'id': dish.id,
@@ -125,6 +122,4 @@ def dish_detail(request, dish_id):
             'image_url': dish.get_image_url() if dish.image else '/static/images/logo.png',
         }
         return JsonResponse(data)
-    
-    # Обычный запрос - рендерим страницу (если нужно)
     return render(request, 'menu/dish_detail.html', {'dish': dish})

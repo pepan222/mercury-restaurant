@@ -732,46 +732,66 @@
     <div class="container">
         <h2>Наши кухни</h2>
         <div class="cuisine-grid">
-            <div class="cuisine-card">
-                <div class="cuisine-img">🇷🇺</div>
-                <div class="cuisine-content">
-                    <h3>Русская кухня</h3>
-                    <p>Борщ, пельмени, бутерброды с икрой, пироги</p>
-                    <span class="price-badge">от 140₽</span>
+            <a href="/menu/?category=1" class="cuisine-card-link">
+                <div class="cuisine-card">
+                    <div class="cuisine-img">
+                        <img src="{% static 'images/rus.webp' %}" alt="Русская кухня" loading="lazy">
+                    </div>
+                    <div class="cuisine-content">
+                        <h3>Русская кухня</h3>
+                        <p>Борщ, пельмени, бутерброды с икрой, пироги</p>
+                        <span class="price-badge">от 140₽</span>
+                    </div>
                 </div>
-            </div>
-            <div class="cuisine-card">
-                <div class="cuisine-img">🇮🇹</div>
-                <div class="cuisine-content">
-                    <h3>Итальянская кухня</h3>
-                    <p>Паста, фокачча, пицца, тирамису</p>
-                    <span class="price-badge">от 200₽</span>
+            </a>
+            <a href="/menu/?category=2" class="cuisine-card-link">
+                <div class="cuisine-card">
+                    <div class="cuisine-img">
+                        <img src="{% static 'images/ital.webp' %}" alt="Итальянская кухня" loading="lazy">
+                    </div>
+                    <div class="cuisine-content">
+                        <h3>Итальянская кухня</h3>
+                        <p>Паста, фокачча, пицца, тирамису</p>
+                        <span class="price-badge">от 200₽</span>
+                    </div>
                 </div>
-            </div>
-            <div class="cuisine-card">
-                <div class="cuisine-img">🇯🇵</div>
-                <div class="cuisine-content">
-                    <h3>Японская кухня</h3>
-                    <p>Суши, ассорти, роллы, соусы</p>
-                    <span class="price-badge">от 70₽</span>
+            </a>
+            <a href="/menu/?category=3" class="cuisine-card-link">
+                <div class="cuisine-card">
+                    <div class="cuisine-img">
+                        <img src="{% static 'images/yapon.webp' %}" alt="Японская кухня" loading="lazy">
+                    </div>
+                    <div class="cuisine-content">
+                        <h3>Японская кухня</h3>
+                        <p>Суши, ассорти, роллы, соусы</p>
+                        <span class="price-badge">от 70₽</span>
+                    </div>
                 </div>
-            </div>
-            <div class="cuisine-card">
-                <div class="cuisine-img">🇪🇺</div>
-                <div class="cuisine-content">
-                    <h3>Европейская кухня</h3>
-                    <p>Стейки, харчо, бургеры</p>
-                    <span class="price-badge">от 120₽</span>
+            </a>
+            <a href="/menu/?category=4" class="cuisine-card-link">
+                <div class="cuisine-card">
+                    <div class="cuisine-img">
+                        <img src="{% static 'images/europ.webp' %}" alt="Европейская кухня" loading="lazy">
+                    </div>
+                    <div class="cuisine-content">
+                        <h3>Европейская кухня</h3>
+                        <p>Стейки, харчо, бургеры</p>
+                        <span class="price-badge">от 120₽</span>
+                    </div>
                 </div>
-            </div>
-            <div class="cuisine-card">
-                <div class="cuisine-img">🇬🇪</div>
-                <div class="cuisine-content">
-                    <h3>Кавказская кухня</h3>
-                    <p>Шашлык, люля-кебаб, овощи на монгале</p>
-                    <span class="price-badge">от 120₽</span>
+            </a>
+            <a href="/menu/?category=5" class="cuisine-card-link">
+                <div class="cuisine-card">
+                    <div class="cuisine-img">
+                        <img src="{% static 'images/kav.jpg' %}" alt="Кавказская кухня" loading="lazy">
+                    </div>
+                    <div class="cuisine-content">
+                        <h3>Кавказская кухня</h3>
+                        <p>Шашлык, люля-кебаб, овощи на монгале</p>
+                        <span class="price-badge">от 120₽</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 </section>

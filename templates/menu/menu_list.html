@@ -382,7 +382,7 @@
         <!-- ОБЫЧНЫЙ РЕЖИМ (группировка по категориям) -->
         <div class="category-tabs">
             {% for cat in categories_data %}
-            <button class="category-tab {% if forloop.first %}active{% endif %}" data-category="{{ cat.id }}">
+            <button class="category-tab {% if cat.id|stringformat:"s" == selected_category_id %}active{% endif %}" data-category="{{ cat.id }}">
                 {{ cat.name }}
             </button>
             {% endfor %}
@@ -1253,8 +1253,25 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        const firstTab = document.querySelector('.category-tab');
-        if (firstTab) firstTab.click();
+        // Кликаем по активной вкладке (если есть), иначе по первой
+        const activeTab = document.querySelector('.category-tab.active');
+        if (activeTab) {
+            activeTab.click();
+            // Дополнительно: после клика по вкладке активируем подкатегорию "Все" для этой категории
+            setTimeout(() => {
+                const activeCategoryId = activeTab.getAttribute('data-category');
+                const activeContent = document.querySelector(`.category-content[data-category="${activeCategoryId}"]`);
+                if (activeContent) {
+                    const allSubBtn = activeContent.querySelector('.subcategory-tab[data-subcategory="all"]');
+                    if (allSubBtn) allSubBtn.click();
+                    const mobileSelect = activeContent.querySelector('.subcategory-select-mobile');
+                    if (mobileSelect) mobileSelect.value = 'all';
+                }
+            }, 100);
+        } else {
+            const firstTab = document.querySelector('.category-tab');
+            if (firstTab) firstTab.click();
+        }
     }
     
     // Переключение подкатегорий на десктопе
