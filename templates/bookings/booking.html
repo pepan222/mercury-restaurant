@@ -768,6 +768,73 @@
         }, 3000);
     }
     
+    // Функция для проверки времени на сегодняшнюю дату (нельзя бронировать прошедшее время)
+    function validateTimeForToday() {
+        const dateInput = document.getElementById('reservation_date');
+        const timeInput = document.getElementById('reservation_time');
+        
+        if (!dateInput || !timeInput) return true;
+        
+        const selectedDate = dateInput.value;
+        const selectedTime = timeInput.value;
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Если выбрана сегодняшняя дата
+        if (selectedDate === today) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentTimeInMinutes = currentHour * 60 + currentMinute;
+            
+            const [selectedHour, selectedMinute] = selectedTime.split(':').map(Number);
+            const selectedTimeInMinutes = selectedHour * 60 + selectedMinute;
+            
+            // Если выбранное время прошедшее (с запасом 10 минут)
+            if (selectedTimeInMinutes < currentTimeInMinutes) {
+                // Устанавливаем ближайшее будущее время (через 30 минут, но не менее текущего часа + 1)
+                let futureHour = currentHour;
+                let futureMinute = currentMinute + 30;
+                if (futureMinute >= 60) {
+                    futureHour++;
+                    futureMinute -= 60;
+                }
+                if (futureHour < 12) futureHour = 12;
+                if (futureHour > 22) futureHour = 22;
+                
+                const futureHourStr = String(futureHour).padStart(2, '0');
+                const futureMinuteStr = String(futureMinute).padStart(2, '0');
+                const futureTime = `${futureHourStr}:${futureMinuteStr}`;
+                
+                showToast('⏰ Нельзя забронировать столик на прошедшее время. Выберите время в будущем.', 'warning');
+                timeInput.value = futureTime;
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // Функция для проверки времени (с 12:00 до 22:00)
+    function validateTimeRange() {
+        const timeInput = document.getElementById('reservation_time');
+        const time = timeInput.value;
+        
+        if (time < '12:00') {
+            showToast('⏰ Ресторан работает с 12:00. Пожалуйста, выберите время позже.', 'warning');
+            timeInput.value = '12:00';
+            loadAvailableTables();
+            return false;
+        }
+        
+        if (time > '22:00') {
+            showToast('⏰ Ресторан работает до 22:00. Пожалуйста, выберите время раньше.', 'warning');
+            timeInput.value = '22:00';
+            loadAvailableTables();
+            return false;
+        }
+        
+        return true;
+    }
+    
     // Функция для загрузки доступных столов
     function loadAvailableTables() {
         const dateInput = document.getElementById('reservation_date');
@@ -782,6 +849,18 @@
         
         if (!guestCount.value) {
             tableSelect.innerHTML = '<option value="">Сначала выберите количество гостей</option>';
+            return;
+        }
+        
+        // Проверяем диапазон времени (12:00-22:00)
+        if (!validateTimeRange()) {
+            tableSelect.innerHTML = '<option value="">Сначала выберите корректное время (12:00-22:00)</option>';
+            return;
+        }
+        
+        // Проверяем, что для сегодняшней даты время не прошедшее
+        if (!validateTimeForToday()) {
+            tableSelect.innerHTML = '<option value="">Выберите время в будущем</option>';
             return;
         }
         
@@ -817,27 +896,14 @@
             });
     }
     
-    // Проверка времени (с красивым уведомлением)
+    // Функция-обёртка для validateTime (сохраняет совместимость)
     function validateTime() {
-        const timeInput = document.getElementById('reservation_time');
-        const time = timeInput.value;
-        
-        if (time < '12:00') {
-            showToast('Время работы ресторана начинается с 12:00. Пожалуйста, выберите время позже.', 'warning');
-            timeInput.value = '12:00';
+        const rangeValid = validateTimeRange();
+        const todayValid = validateTimeForToday();
+        if (rangeValid && todayValid) {
             loadAvailableTables();
-            return false;
         }
-        
-        if (time > '22:00') {
-            showToast('Ресторан работает до 22:00. Пожалуйста, выберите время раньше.', 'warning');
-            timeInput.value = '22:00';
-            loadAvailableTables();
-            return false;
-        }
-        
-        loadAvailableTables();
-        return true;
+        return rangeValid && todayValid;
     }
     
     // Слушаем изменения даты, времени и количества гостей
@@ -845,19 +911,38 @@
         const dateInput = document.getElementById('reservation_date');
         const timeInput = document.getElementById('reservation_time');
         const guestCount = document.getElementById('guest_count');
+        const bookingForm = document.getElementById('bookingForm');
         
         // Устанавливаем минимальную дату - сегодня
         const today = new Date().toISOString().split('T')[0];
         dateInput.min = today;
         
-        dateInput.addEventListener('change', loadAvailableTables);
+        dateInput.addEventListener('change', function() {
+            validateTimeForToday();
+            loadAvailableTables();
+        });
         timeInput.addEventListener('change', validateTime);
         guestCount.addEventListener('change', loadAvailableTables);
+        
+        // Валидация перед отправкой формы
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function(e) {
+                if (!validateTimeRange()) {
+                    e.preventDefault();
+                    return false;
+                }
+                if (!validateTimeForToday()) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        }
         
         // Если дата, время и количество гостей уже заполнены, загружаем столы
         if (dateInput.value && timeInput.value && guestCount.value) {
             // Дополнительно проверяем время при загрузке
             if (timeInput.value >= '12:00' && timeInput.value <= '22:00') {
+                validateTimeForToday();
                 loadAvailableTables();
             } else {
                 timeInput.value = '19:00';

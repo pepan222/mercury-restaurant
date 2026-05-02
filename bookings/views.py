@@ -6,6 +6,24 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Table, Reservation
 
+
+def is_time_valid_for_date(reservation_date, reservation_time):
+    """Проверяет, что выбранное время не прошедшее для указанной даты"""
+    try:
+        # Объединяем дату и время в один datetime объект
+        selected_datetime = datetime.strptime(f"{reservation_date} {reservation_time}", '%Y-%m-%d %H:%M')
+        now = timezone.now()
+        
+        # Если дата сегодня, проверяем что время не прошедшее
+        if selected_datetime.date() == now.date():
+            return selected_datetime.time() > now.time()
+        
+        # Если дата в будущем, любое время допустимо
+        return selected_datetime > now
+    except (ValueError, TypeError):
+        return False
+
+
 @login_required
 def booking_view(request):
     """Страница бронирования"""
@@ -50,7 +68,7 @@ def get_busy_tables(reservation_date, reservation_time):
     # Учитываем только активные бронирования (ожидание и подтверждено)
     reservations = Reservation.objects.filter(
         reservation_date=reservation_date,
-        status__in=['pending', 'confirmed']  # <-- только эти статусы блокируют стол
+        status__in=['pending', 'confirmed']
     )
     
     busy_table_ids = set()
@@ -116,6 +134,11 @@ def create_booking(request):
         
         table = get_object_or_404(Table, id=table_id)
         
+        # --- НОВАЯ ПРОВЕРКА: нельзя бронировать на прошедшее время ---
+        if not is_time_valid_for_date(reservation_date, reservation_time):
+            messages.error(request, '❌ Нельзя забронировать столик на прошедшее время. Пожалуйста, выберите время в будущем.')
+            return redirect('bookings:booking')
+        
         # Проверка на количество гостей
         try:
             guest_count_int = int(guest_count)
@@ -130,7 +153,7 @@ def create_booking(request):
         busy_table_ids = get_busy_tables(reservation_date, reservation_time)
         
         if table.id in busy_table_ids:
-            messages.error(request, 'Этот стол уже забронирован на выбранное время или на ближайшие 2 часа')
+            messages.error(request, '❌ Этот стол уже забронирован на выбранное время или на ближайшие 2 часа')
             return redirect('bookings:booking')
         
         # Обновляем телефон в профиле
@@ -148,7 +171,7 @@ def create_booking(request):
             comment=comment
         )
         
-        messages.success(request, f'Стол №{table.table_number} забронирован!')
+        messages.success(request, f'✅ Стол №{table.table_number} забронирован!')
         return redirect('users:profile')
     
     return redirect('bookings:booking')
@@ -169,10 +192,10 @@ def cancel_booking(request, booking_id):
         if reservation_datetime > now + timedelta(hours=2):
             reservation.status = 'cancelled'
             reservation.save()
-            messages.success(request, 'Бронирование отменено')
+            messages.success(request, '✅ Бронирование отменено')
         else:
-            messages.error(request, 'Нельзя отменить бронирование менее чем за 2 часа до начала')
+            messages.error(request, '❌ Нельзя отменить бронирование менее чем за 2 часа до начала')
     else:
-        messages.error(request, 'Нельзя отменить это бронирование')
+        messages.error(request, '❌ Нельзя отменить это бронирование')
     
     return redirect('users:profile')
