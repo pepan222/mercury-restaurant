@@ -557,6 +557,7 @@ def publish_review(request, review_id):
     """Публикация отзыва"""
     review = get_object_or_404(Review, id=review_id)
     review.is_published = True
+    review.is_moderated = True
     review.save()
     messages.success(request, 'Отзыв опубликован')
     return redirect('dashboard:reviews')

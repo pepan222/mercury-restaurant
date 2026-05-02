@@ -1172,6 +1172,45 @@ function initSlider() {
 
 // Модальное окно отзыва
 function openReviewModal() {
+    // Проверяем, авторизован ли пользователь
+    fetch('/orders/api/cart/count/')
+        .then(response => {
+            if (response.redirected && response.url.includes('/login/')) return false;
+            if (response.status === 403 || response.status === 401) return false;
+            return response.json().then(() => true).catch(() => false);
+        })
+        .then(isAuthenticated => {
+            if (!isAuthenticated) {
+                // Устанавливаем флаг, что после входа нужно открыть окно отзыва
+                if (typeof window.setPendingReview === 'function') {
+                    window.setPendingReview();
+                }
+                // Открываем окно авторизации
+                if (typeof window.openLoginModal === 'function') {
+                    window.openLoginModal();
+                } else {
+                    window.location.href = '/login/';
+                }
+                return;
+            }
+            
+            // Пользователь авторизован — открываем окно отзыва
+            openReviewModalAfterAuth();
+        })
+        .catch(() => {
+            if (typeof window.setPendingReview === 'function') {
+                window.setPendingReview();
+            }
+            if (typeof window.openLoginModal === 'function') {
+                window.openLoginModal();
+            } else {
+                window.location.href = '/login/';
+            }
+        });
+}
+
+// Функция для открытия окна отзыва (без проверки авторизации)
+function openReviewModalAfterAuth() {
     const modal = document.getElementById('reviewModal');
     if (modal) {
         modal.classList.add('active');

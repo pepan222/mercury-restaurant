@@ -5,6 +5,7 @@ from django.views.static import serve
 from django.urls import re_path
 from django.contrib.sitemaps import Sitemap
 from django.contrib.sitemaps.views import sitemap as sitemap_view
+from django.contrib import admin
 
 
 class StaticViewSitemap(Sitemap):
@@ -30,6 +31,7 @@ sitemaps = {
 }
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path('dashboard/', include('dashboard.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', include('core.urls')),

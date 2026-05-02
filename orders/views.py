@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
+from datetime import datetime
 from .models import Cart, CartItem, Order, OrderItem
 from menu.models import Dish
 from users.models import Profile
@@ -108,6 +109,18 @@ def update_cart_item(request, item_id):
             'message': str(e)
         }, status=400)
 
+def is_delivery_available():
+    """Проверяет, доступна ли доставка в текущее время (с 12:00 до 21:00)"""
+    now = datetime.now()
+    current_hour = now.hour
+    current_minute = now.minute
+    current_time_in_minutes = current_hour * 60 + current_minute
+    
+    start_time = 12 * 60      # 12:00
+    end_time = 21 * 60        # 21:00
+    
+    return start_time <= current_time_in_minutes < end_time
+
 @login_required
 def checkout(request):
     """Оформление заказа"""
@@ -116,11 +129,19 @@ def checkout(request):
         messages.error(request, 'Корзина пуста')
         return redirect('menu:menu_list')
     
+    # Проверяем, доступна ли доставка по времени
+    delivery_available = is_delivery_available()
+    
     # Получаем профиль пользователя для подтягивания адреса
     profile, created = Profile.objects.get_or_create(user=request.user)
     user_address = profile.address or ''
     
     if request.method == 'POST':
+        # Если доставка недоступна, показываем ошибку и перенаправляем обратно
+        if not delivery_available:
+            messages.error(request, 'Доставка работает с 12:00 до 21:00. Пожалуйста, оформите заказ в рабочее время.')
+            return redirect('orders:checkout')
+        
         # Рассчитываем стоимость доставки
         delivery_cost = 200 if cart.get_total() < 1500 else 0
         cart_total = cart.get_total()
@@ -164,9 +185,11 @@ def checkout(request):
         
         return redirect('orders:order_success', order_id=order.id)
     
+    # GET-запрос — показываем страницу оформления
     return render(request, 'orders/checkout.html', {
         'cart': cart,
         'user_address': user_address,
+        'is_delivery_available': delivery_available,
     })
 
 @login_required

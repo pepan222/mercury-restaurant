@@ -18,6 +18,22 @@
     <div class="container cart-page">
         <h1 style="margin-bottom: 30px;">Корзина</h1>
         
+        <!-- Блок информации о доставке -->
+        <div class="delivery-info-block">
+            <div class="delivery-info-header">
+                <span class="delivery-info-title">Информация о доставке</span>
+                <div class="info-icon-wrapper" id="deliveryInfoIcon">
+                    <span class="info-icon">!</span>
+                    <div class="info-tooltip" id="deliveryTooltip">
+                        <div class="tooltip-content">
+                            <p>📦 Доставка от 1500 ₽ — <strong>бесплатно</strong></p>
+                            <p>⏰ Режим работы доставки: <strong>с 12:00 до 21:00</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         {% if cart.items.all %}
         <div class="cart-items">
             {% for item in cart.items.all %}
@@ -88,6 +104,168 @@
 .cart-page {
     max-width: 1100px;
     margin: 0 auto;
+}
+
+/* ========== СТИЛИ ДЛЯ БЛОКА ИНФОРМАЦИИ О ДОСТАВКЕ ========== */
+.delivery-info-block {
+    background: linear-gradient(135deg, #fff8f0 0%, #fff 100%);
+    border: 1px solid #e8e0d0;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 25px;
+}
+
+.delivery-info-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.delivery-info-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #800020;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+}
+
+.info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: #800020;
+    color: white;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: monospace;
+    transition: all 0.3s;
+}
+
+.info-icon-wrapper:hover .info-icon {
+    background: #B8860B;
+    transform: scale(1.1);
+}
+
+.info-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    background: #1a1a2e;
+    color: #eee;
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 220px;
+    max-width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 100;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(184, 134, 11, 0.3);
+    pointer-events: none;
+}
+
+.info-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 12px;
+    height: 12px;
+    background: #1a1a2e;
+    border-top: 1px solid rgba(184, 134, 11, 0.3);
+    border-left: 1px solid rgba(184, 134, 11, 0.3);
+}
+
+.info-icon-wrapper:hover .info-tooltip {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Для клика на мобильных устройствах */
+.info-tooltip.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.tooltip-content p {
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.tooltip-content p:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-content strong {
+    color: #B8860B;
+}
+
+/* Адаптив для блока информации */
+@media (max-width: 768px) {
+    .delivery-info-block {
+        padding: 10px 16px;
+        margin-bottom: 20px;
+    }
+    
+    .delivery-info-title {
+        font-size: 0.8rem;
+    }
+    
+    .info-icon {
+        width: 16px;
+        height: 16px;
+        font-size: 0.65rem;
+    }
+    
+    .info-tooltip {
+        min-width: 200px;
+        padding: 10px 14px;
+        margin-top: 8px;
+    }
+    
+    .tooltip-content p {
+        font-size: 0.75rem;
+        margin-bottom: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .delivery-info-block {
+        padding: 8px 12px;
+    }
+    
+    .delivery-info-title {
+        font-size: 0.7rem;
+    }
+    
+    .info-tooltip {
+        left: auto;
+        right: 0;
+        transform: translateX(0);
+        min-width: 180px;
+    }
+    
+    .info-tooltip::before {
+        left: auto;
+        right: 10px;
+        transform: rotate(45deg);
+    }
 }
 
 .cart-items {
@@ -711,6 +889,34 @@
 </style>
 
 <script>
+// Функция для управления тултипом на мобильных устройствах
+document.addEventListener('DOMContentLoaded', function() {
+    const infoIconWrapper = document.getElementById('deliveryInfoIcon');
+    const tooltip = document.getElementById('deliveryTooltip');
+    
+    if (infoIconWrapper && tooltip) {
+        // Обработчик клика для мобильных устройств
+        infoIconWrapper.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Закрываем другие тултипы
+            document.querySelectorAll('.info-tooltip.active').forEach(t => {
+                if (t !== tooltip) t.classList.remove('active');
+            });
+            tooltip.classList.toggle('active');
+        });
+        
+        // Закрытие тултипа при клике вне его
+        document.addEventListener('click', function(e) {
+            if (!infoIconWrapper.contains(e.target)) {
+                tooltip.classList.remove('active');
+            }
+        });
+        
+        // На мобильных устройствах при наведении тоже работает
+        // но мы используем клик для надежности
+    }
+});
+
 // Функция для получения CSRF-токена
 function getCSRFToken() {
     let cookieValue = null;

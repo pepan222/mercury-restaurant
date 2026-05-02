@@ -397,7 +397,7 @@
         }
     }
     
-    /* Стили для модального окна авторизации - оверлей */
+    /* ========== ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ МОДАЛЬНЫХ ОКОН (ПЛАВНЫЕ) ========== */
     .modal {
         display: none;
         position: fixed;
@@ -414,6 +414,18 @@
     
     .modal.active {
         display: flex;
+        animation: modalFadeIn 0.3s ease;
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+        }
+        to {
+            opacity: 1;
+            backdrop-filter: blur(3px);
+        }
     }
     
     .modal .modal-overlay {
@@ -436,6 +448,18 @@
         max-height: 90vh;
         overflow-y: auto;
         z-index: 10;
+        animation: modalContentFadeIn 0.3s ease;
+    }
+    
+    @keyframes modalContentFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
     
     /* Стили для ошибок формы */
@@ -649,13 +673,18 @@
         }
         
         // Функции для модального окна авторизации
-        window.openModal = function(type) {
+        window.openModal = function(type, callback) {
             const modal = document.getElementById('authModal');
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
             const title = document.getElementById('modalTitle');
             
             if (!modal) return;
+            
+            // Сохраняем колбэк для выполнения после успешного входа
+            if (callback && typeof callback === 'function') {
+                window.pendingAuthCallback = callback;
+            }
             
             clearErrors();
             
@@ -674,8 +703,14 @@
             document.body.style.overflow = 'hidden';
         };
         
-        window.openLoginModal = function() { window.openModal('login'); };
-        window.openRegisterModal = function() { window.openModal('register'); };
+        window.openLoginModal = function(callback) { 
+            if (callback) window.pendingAuthCallback = callback;
+            window.openModal('login', callback); 
+        };
+        window.openRegisterModal = function(callback) { 
+            if (callback) window.pendingAuthCallback = callback;
+            window.openModal('register', callback); 
+        };
         
         window.closeModal = function() {
             const modal = document.getElementById('authModal');
@@ -685,6 +720,25 @@
                 clearErrors();
             }
         };
+        
+        // Функция для установки флага "открыть окно отзыва после входа"
+        window.setPendingReview = function() {
+            localStorage.setItem('openReviewAfterLogin', 'true');
+        };
+        
+        // Проверяем при загрузке страницы, нужно ли открыть окно отзыва
+        function checkPendingReview() {
+            const shouldOpen = localStorage.getItem('openReviewAfterLogin');
+            if (shouldOpen === 'true') {
+                localStorage.removeItem('openReviewAfterLogin');
+                // Даём странице время на полную загрузку
+                setTimeout(function() {
+                    if (typeof openReviewModalAfterAuth === 'function') {
+                        openReviewModalAfterAuth();
+                    }
+                }, 500);
+            }
+        }
         
         // AJAX-отправка формы входа
         document.addEventListener('DOMContentLoaded', function() {
@@ -709,9 +763,13 @@
                         }
                     })
                     .then(response => {
-                        // Проверяем редирект (успешный вход)
                         if (response.redirected) {
                             window.closeModal();
+                            // Если есть колбэк, сохраняем его в localStorage
+                            if (window.pendingAuthCallback) {
+                                localStorage.setItem('pendingCallback', 'true');
+                                window.pendingAuthCallback = null;
+                            }
                             window.location.href = response.url;
                             return null;
                         }
@@ -767,6 +825,11 @@
                             window.closeModal();
                             if (typeof showNotification === 'function') {
                                 showNotification(data.message);
+                            }
+                            // Если есть колбэк, сохраняем его в localStorage
+                            if (window.pendingAuthCallback) {
+                                localStorage.setItem('pendingCallback', 'true');
+                                window.pendingAuthCallback = null;
                             }
                             window.location.href = data.redirect_url || '/';
                         } else {
@@ -841,6 +904,9 @@
                     };
                 }
             }
+            
+            // Проверяем, нужно ли открыть окно отзыва после перезагрузки
+            checkPendingReview();
         });
     </script>
     

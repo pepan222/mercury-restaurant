@@ -85,6 +85,35 @@
         border-top: 1px solid var(--border-light);
     }
     
+    /* Блок информации о недоступности доставки */
+    .delivery-unavailable {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    
+    .delivery-unavailable-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #856404;
+        margin-bottom: 10px;
+    }
+    
+    .delivery-unavailable-text {
+        color: #856404;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .delivery-unavailable-hours {
+        font-weight: 600;
+        color: #B8860B;
+        margin-top: 10px;
+    }
+    
     .delivery-form {
         background: var(--white);
         border-radius: 16px;
@@ -141,6 +170,117 @@
         color: var(--text-light);
         margin-top: 5px;
         display: block;
+    }
+    
+    /* Красивое уведомление (toast) */
+    .custom-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        min-width: 280px;
+        max-width: 350px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        z-index: 10000;
+        animation: slideInRight 0.3s ease;
+        overflow: hidden;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .custom-toast.hide {
+        animation: slideOutRight 0.3s ease;
+    }
+    
+    .toast-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 20px;
+    }
+    
+    .toast-icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .toast-icon.warning {
+        color: #ff9800;
+        font-size: 20px;
+    }
+    
+    .toast-message {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #333;
+        line-height: 1.4;
+    }
+    
+    .toast-close {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        color: #999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+        border-radius: 50%;
+    }
+    
+    .toast-close:hover {
+        color: #333;
+        background: #f5f5f5;
+    }
+    
+    .toast-progress {
+        height: 3px;
+        background: #ff9800;
+        width: 100%;
+        animation: progress 3s linear forwards;
+    }
+    
+    @keyframes progress {
+        from { width: 100%; }
+        to { width: 0%; }
+    }
+    
+    @media (max-width: 480px) {
+        .custom-toast {
+            left: 20px;
+            right: 20px;
+            min-width: auto;
+            max-width: none;
+        }
     }
     
     /* ========== АДАПТИВНОСТЬ ========== */
@@ -465,6 +605,7 @@
     <div class="container">
         <h1 style="margin-bottom: 30px;">Оформление заказа</h1>
         
+        {% if is_delivery_available %}
         <div class="checkout-grid">
             <div class="order-summary">
                 <h3>Ваш заказ</h3>
@@ -536,6 +677,94 @@
                 </form>
             </div>
         </div>
+        {% else %}
+        <div class="delivery-unavailable">
+            <div class="delivery-unavailable-title">⏰ Доставка временно недоступна</div>
+            <div class="delivery-unavailable-text">
+                Режим работы доставки: <strong>с 12:00 до 21:00</strong>
+            </div>
+            <div class="delivery-unavailable-text">
+                Пожалуйста, оформите заказ в рабочее время доставки.
+            </div>
+            <div class="delivery-unavailable-hours">
+                Вы можете оставить блюда в корзине и вернуться позже.
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="{% url 'orders:cart' %}" class="btn btn-secondary">Вернуться в корзину</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </section>
 {% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Функция для показа красивого уведомления
+    function showToast(message, type = 'warning') {
+        // Удаляем старые уведомления
+        const oldToasts = document.querySelectorAll('.custom-toast');
+        oldToasts.forEach(toast => toast.remove());
+        
+        // Создаём контейнер уведомления
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        
+        // Иконка в зависимости от типа
+        let iconHtml = '';
+        if (type === 'warning') {
+            iconHtml = '⚠️';
+        } else if (type === 'error') {
+            iconHtml = '❌';
+        } else if (type === 'success') {
+            iconHtml = '✅';
+        } else {
+            iconHtml = 'ℹ️';
+        }
+        
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-icon ${type}">
+                    ${iconHtml}
+                </div>
+                <div class="toast-message">
+                    ${message}
+                </div>
+                <button class="toast-close" onclick="this.closest('.custom-toast').remove()">✕</button>
+            </div>
+            <div class="toast-progress"></div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Автоматическое скрытие через 4 секунды
+        setTimeout(() => {
+            if (toast) {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 4000);
+    }
+    
+    // Обработка отправки формы
+    const form = document.getElementById('checkoutForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Проверяем текущее время перед отправкой
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentTimeInMinutes = currentHour * 60 + currentMinute;
+            
+            const startTimeInMinutes = 12 * 60;      // 12:00
+            const endTimeInMinutes = 21 * 60;        // 21:00
+            
+            if (currentTimeInMinutes < startTimeInMinutes || currentTimeInMinutes >= endTimeInMinutes) {
+                e.preventDefault();
+                showToast('Доставка работает с 12:00 до 21:00. Пожалуйста, оформите заказ в рабочее время.', 'warning');
+                return false;
+            }
+        });
+    }
+});
+</script>
