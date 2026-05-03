@@ -137,6 +137,11 @@ def checkout(request):
     user_address = profile.address or ''
     
     if request.method == 'POST':
+        # --- ПРОВЕРКА СОГЛАСИЯ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ (152-ФЗ) ---
+        if not request.POST.get('personal_data_consent'):
+            messages.error(request, 'Для оформления заказа необходимо дать согласие на обработку персональных данных')
+            return redirect('orders:checkout')
+        
         # Если доставка недоступна, показываем ошибку и перенаправляем обратно
         if not delivery_available:
             messages.error(request, 'Доставка работает с 12:00 до 21:00. Пожалуйста, оформите заказ в рабочее время.')

@@ -634,6 +634,37 @@
             font-size: 0.8rem;
         }
     }
+    /* Стили для чекбокса согласия */
+    .consent-group {
+        margin-top: 5px;
+        margin-bottom: 20px;
+    }
+
+    .checkbox-label:hover {
+        opacity: 0.9;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        flex-shrink: 0;
+    }
+
+    .consent-group .error-message {
+        margin-top: 8px;
+        margin-left: 28px;
+        font-size: 0.75rem;
+        color: #f44336;
+    }
+
+    @media (max-width: 480px) {
+        .checkbox-label span {
+            font-size: 0.75rem;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -708,6 +739,18 @@
                         <label>Комментарий (пожелания, особые случаи)</label>
                         <textarea name="comment" class="form-control" rows="3" placeholder="День рождения, особый столик и т.д."></textarea>
                     </div>
+                    
+                    <!-- Чекбокс согласия на обработку ПДн -->
+                    <div class="form-group consent-group">
+                        <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" name="personal_data_consent" id="personal_data_consent" required style="width: 18px; height: 18px; margin-top: 2px;">
+                            <span style="font-size: 0.85rem; line-height: 1.4; font-weight: normal;">
+                                Я даю согласие на обработку моих персональных данных (имя, телефон, email) в соответствии с 
+                                <a href="{% url 'core:privacy_policy' %}" target="_blank" style="color: #B8860B;">Политикой конфиденциальности</a>
+                            </span>
+                        </label>
+                    </div>
+
                     <button type="submit" class="btn btn-primary btn-submit">Забронировать</button>
                 </form>
             </div>

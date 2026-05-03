@@ -125,6 +125,11 @@ def get_available_tables(request):
 def create_booking(request):
     """Создание бронирования"""
     if request.method == 'POST':
+        # --- ПРОВЕРКА СОГЛАСИЯ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ (152-ФЗ) ---
+        if not request.POST.get('personal_data_consent'):
+            messages.error(request, 'Необходимо дать согласие на обработку персональных данных')
+            return redirect('bookings:booking')
+        
         table_id = request.POST.get('table_id')
         reservation_date = request.POST.get('reservation_date')
         reservation_time = request.POST.get('reservation_time')

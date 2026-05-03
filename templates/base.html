@@ -484,6 +484,32 @@
         25% { transform: translateX(-5px); }
         75% { transform: translateX(5px); }
     }
+
+    /* Стили для иконок социальных сетей */
+    .social-links {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .social-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        color: var(--white);
+        text-decoration: none;
+        font-size: 1.2rem;
+    }
+    
+    .social-icon:hover {
+        background: var(--primary-gold);
+        transform: translateY(-3px);
+    }
     </style>
 </head>
 <body>
@@ -593,11 +619,11 @@
                     <h3>Меркурий</h3>
                     <p>Ресторан пяти кухонь мира</p>
                     <p>Аутентичность, качество, мастерство</p>
-                    <div class="social-links">
-                        <a href="#" class="social-icon">📷</a>
-                        <a href="#" class="social-icon">📘</a>
-                        <a href="#" class="social-icon">📱</a>
-                    </div>
+                    <!-- <div class="social-links">
+                        <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer">📷</a>
+                        <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer">📘</a>
+                        <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer">📱</a>
+                    </div> -->
                 </div>
                 <div class="footer-info">
                     <h3>Навигация</h3>
@@ -605,6 +631,8 @@
                     <p><a href="{% url 'menu:menu_list' %}" style="color: #CCCCCC; text-decoration: none;">Меню</a></p>
                     <p><a href="{% url 'core:gallery' %}" style="color: #CCCCCC; text-decoration: none;">Галерея</a></p>
                     <p><a href="{% url 'orders:cart' %}" style="color: #CCCCCC; text-decoration: none;">Корзина</a></p>
+                    <p><a href="{% url 'bookings:booking' %}" style="color: #CCCCCC; text-decoration: none;">Бронирование</a></p>
+                    <p><a href="{% url 'core:contacts' %}" style="color: #CCCCCC; text-decoration: none;">Контакты</a></p>
                     <p><a href="{% url 'core:privacy_policy' %}" style="color: #CCCCCC; text-decoration: none;">Политика конфиденциальности</a></p>
                 </div>
                 <div class="footer-info">
