@@ -100,16 +100,41 @@
         padding: 20px 25px 25px;
         border-top: 1px solid var(--border-light);
         display: flex;
+        flex-wrap: wrap;
         gap: 15px;
+        justify-content: center;
     }
     
     .profile-actions .btn {
-        flex: 1;
-        text-align: center;
-        padding: 10px 20px;
-        font-size: 0.9rem;
-        white-space: nowrap;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1.2;
+    }
+    
+    /* Стиль для золотой кнопки (админ-панель) */
+    .btn-gold {
+        background: #B8860B;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
         transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-gold:hover {
+        background: #9a7009;
+        transform: translateY(-2px);
     }
     
     /* Секция заказов и бронирований */
@@ -729,6 +754,9 @@
                 </div>
                 <div class="profile-actions">
                     <a href="{% url 'users:edit_profile' %}" class="btn btn-primary">Редактировать</a>
+                    {% if user.is_staff or user.is_superuser %}
+                    <a href="/dashboard/" class="btn btn-gold">Админ-панель</a>
+                    {% endif %}
                     <a href="{% url 'core:home' %}" class="btn btn-secondary">На главную</a>
                 </div>
             </div>
@@ -744,7 +772,6 @@
                         <table class="orders-table">
                             <thead>
                                 <tr>
-                                    <!-- <th>№</th> -->
                                     <th>Дата</th>
                                     <th>Сумма</th>
                                     <th>Статус</th>
@@ -753,7 +780,6 @@
                             <tbody>
                                 {% for order in orders %}
                                 <tr>
-                                    <!-- <td><strong>#{{ order.id }}</strong></td> -->
                                     <td>{{ order.order_date|date:"d.m.Y H:i" }}</td>
                                     <td>{{ order.total_amount }} ₽</td>
                                     <td>
@@ -764,7 +790,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4">
+                                    <td colspan="3">
                                         <div class="empty-state">
                                             <div class="empty-icon">🛒</div>
                                             <p>У вас пока нет заказов</p>

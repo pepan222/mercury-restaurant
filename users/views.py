@@ -6,12 +6,48 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+import re
 from .models import Profile
 from orders.models import Order
 from bookings.models import Reservation
 
+
+def validate_password_strength(password):
+    """
+    Проверка сложности пароля:
+    - минимум 8 символов
+    - хотя бы одна заглавная буква (A-Z)
+    - хотя бы одна строчная буква (a-z)
+    - хотя бы одна цифра (0-9)
+    - хотя бы один специальный символ
+    """
+    errors = []
+    
+    # Проверка длины
+    if len(password) < 8:
+        errors.append('Пароль должен содержать минимум 8 символов')
+    
+    # Проверка на заглавные буквы
+    if not re.search(r'[A-Z]', password):
+        errors.append('Пароль должен содержать хотя бы одну заглавную букву (A-Z)')
+    
+    # Проверка на строчные буквы
+    if not re.search(r'[a-z]', password):
+        errors.append('Пароль должен содержать хотя бы одну строчную букву (a-z)')
+    
+    # Проверка на цифры
+    if not re.search(r'[0-9]', password):
+        errors.append('Пароль должен содержать хотя бы одну цифру (0-9)')
+    
+    # Проверка на специальные символы
+    if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:\'",.<>/?\\|`~]', password):
+        errors.append('Пароль должен содержать хотя бы один специальный символ (!@#$%^&*()_+-= и т.д.)')
+    
+    return errors
+
+
 def register(request):
-    """Регистрация пользователя"""
+    """Регистрация пользователя с проверкой сложности пароля"""
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -41,9 +77,10 @@ def register(request):
         if email and User.objects.filter(email=email).exists():
             errors.append('Пользователь с таким email уже существует')
         
-        # Проверка длины пароля
-        if password and len(password) < 6:
-            errors.append('Пароль должен содержать минимум 6 символов')
+        # Новая проверка сложности пароля
+        if password:
+            password_errors = validate_password_strength(password)
+            errors.extend(password_errors)
         
         # Если есть ошибки, возвращаем JSON
         if errors:

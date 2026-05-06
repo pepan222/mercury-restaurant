@@ -397,6 +397,203 @@
         }
     }
     
+/* ========== ПЛАВАЮЩАЯ ИКОНКА КОРЗИНЫ ========== */
+.floating-cart {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: block;
+}
+
+.floating-cart .cart-icon {
+    position: relative;
+    width: 65px;
+    height: 65px;
+    background: linear-gradient(135deg, #800020 0%, #B8860B 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+
+.floating-cart .cart-icon img {
+    width: 34px;
+    height: 34px;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+.floating-cart .cart-icon::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #B8860B, #800020);
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.floating-cart .cart-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.floating-cart .cart-icon:hover::before {
+    opacity: 1;
+}
+
+.floating-cart .cart-count {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #B8860B;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 26px;
+    height: 26px;
+    border-radius: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border: 2px solid white;
+    animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Адаптив для планшетов */
+@media (max-width: 768px) {
+    .floating-cart {
+        bottom: 25px;
+        right: 25px;
+    }
+    
+    .floating-cart .cart-icon {
+        width: 58px;
+        height: 58px;
+    }
+    
+    .floating-cart .cart-icon img {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .floating-cart .cart-count {
+        min-width: 24px;
+        height: 24px;
+        font-size: 12px;
+        top: -8px;
+        right: -8px;
+    }
+}
+
+/* Адаптив для мобильных телефонов */
+@media (max-width: 480px) {
+    .floating-cart {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .floating-cart .cart-icon {
+        width: 52px;
+        height: 52px;
+    }
+    
+    .floating-cart .cart-icon img {
+        width: 26px;
+        height: 26px;
+    }
+    
+    .floating-cart .cart-count {
+        min-width: 22px;
+        height: 22px;
+        font-size: 11px;
+        top: -6px;
+        right: -6px;
+    }
+}
+
+/* ========== ИНДИКАТОР СЛОЖНОСТИ ПАРОЛЯ ========== */
+.password-strength-container {
+    margin-top: 8px;
+    margin-bottom: 15px;
+}
+
+.password-strength-bar {
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.strength-fill {
+    width: 0%;
+    height: 100%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    border-radius: 4px;
+}
+
+.password-strength-text {
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.password-requirements {
+    list-style: none;
+    margin: 8px 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.password-requirements li {
+    font-size: 0.7rem;
+    color: #999;
+    transition: color 0.2s ease;
+}
+
+.password-requirements li.valid {
+    color: #4caf50;
+}
+
+.password-requirements li.invalid {
+    color: #f44336;
+}
+
+@media (max-width: 480px) {
+    .password-requirements {
+        gap: 8px;
+    }
+    .password-requirements li {
+        font-size: 0.65rem;
+    }
+}
+    
     /* ========== ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ МОДАЛЬНЫХ ОКОН (ПЛАВНЫЕ) ========== */
     .modal {
         display: none;
@@ -588,12 +785,22 @@
                     <input type="email" class="form-control" name="email" required>
                 </div>
                 <div class="form-group">
-                    <label>Телефон</label>
-                    <input type="tel" class="form-control" name="phone">
-                </div>
-                <div class="form-group">
                     <label>Пароль *</label>
-                    <input type="password" class="form-control" name="password" required>
+                    <input type="password" class="form-control" name="password" id="registerPassword" required>
+                </div>
+                <!-- Индикатор сложности пароля -->
+                <div class="password-strength-container" id="passwordStrengthContainer" style="display: none;">
+                    <div class="password-strength-bar">
+                        <div class="strength-fill" id="strengthFill"></div>
+                    </div>
+                    <div class="password-strength-text" id="strengthText"></div>
+                    <ul class="password-requirements" id="passwordRequirements">
+                        <li id="req-length">✗ Минимум 8 символов</li>
+                        <li id="req-upper">✗ Заглавные буквы (A-Z)</li>
+                        <li id="req-lower">✗ Строчные буквы (a-z)</li>
+                        <li id="req-digit">✗ Цифры (0-9)</li>
+                        <li id="req-special">✗ Специальные символы (!@#$%^&*)</li>
+                    </ul>
                 </div>
                 <div class="form-group">
                     <label>Подтвердите пароль *</label>
@@ -611,6 +818,16 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Плавающая иконка корзины (только для Главной и Меню) -->
+    {% if request.path == '/' or request.path == '/menu/' or request.path == '/menu' %}
+    <a href="{% url 'orders:cart' %}" class="floating-cart" id="floatingCart">
+        <div class="cart-icon">
+            <img src="{% static 'images/shopping-basket.svg' %}" alt="Корзина" width="34" height="34">
+            <span class="cart-count" id="floatingCartCounter" style="display: none;">0</span>
+        </div>
+    </a>
+    {% endif %}
+
     <!-- Футер -->
     <footer class="footer">
         <div class="container">
@@ -619,11 +836,6 @@
                     <h3>Меркурий</h3>
                     <p>Ресторан пяти кухонь мира</p>
                     <p>Аутентичность, качество, мастерство</p>
-                    <!-- <div class="social-links">
-                        <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer">📷</a>
-                        <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer">📘</a>
-                        <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer">📱</a>
-                    </div> -->
                 </div>
                 <div class="footer-info">
                     <h3>Навигация</h3>
@@ -650,8 +862,93 @@
     <!-- Основные скрипты -->
     <script src="{% static 'js/main.js' %}"></script>
     
-    <!-- Функции для модального окна авторизации -->
+    <!-- Функции для модального окна авторизации и индикатора пароля -->
     <script>
+        // ========== ИНДИКАТОР НАДЕЖНОСТИ ПАРОЛЯ ==========
+        function checkPasswordStrength(password) {
+            // Проверка условий (только если пароль не пустой)
+            if (password.length === 0) {
+                // Сбрасываем индикатор
+                updateReq('req-length', false, true);
+                updateReq('req-upper', false, true);
+                updateReq('req-lower', false, true);
+                updateReq('req-digit', false, true);
+                updateReq('req-special', false, true);
+                
+                const fillBar = document.getElementById('strengthFill');
+                const strengthText = document.getElementById('strengthText');
+                if (fillBar) fillBar.style.width = '0%';
+                if (strengthText) strengthText.textContent = '';
+                return;
+            }
+            
+            // Проверка условий
+            const conditions = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                digit: /[0-9]/.test(password),
+                special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)
+            };
+            
+            // Обновляем UI для каждого условия
+            function updateReq(elementId, isValid, isReset = false) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    if (isReset) {
+                        element.classList.remove('valid', 'invalid');
+                        element.innerHTML = element.innerHTML.replace('✓', '✗');
+                    } else if (isValid) {
+                        element.classList.remove('invalid');
+                        element.classList.add('valid');
+                        if (!element.innerHTML.includes('✓')) {
+                            element.innerHTML = element.innerHTML.replace('✗', '✓');
+                        }
+                    } else {
+                        element.classList.remove('valid');
+                        element.classList.add('invalid');
+                        if (!element.innerHTML.includes('✗')) {
+                            element.innerHTML = element.innerHTML.replace('✓', '✗');
+                        }
+                    }
+                }
+            }
+            
+            updateReq('req-length', conditions.length);
+            updateReq('req-upper', conditions.upper);
+            updateReq('req-lower', conditions.lower);
+            updateReq('req-digit', conditions.digit);
+            updateReq('req-special', conditions.special);
+            
+            // Вычисляем силу пароля (0-5)
+            let strength = 0;
+            for (const [key, valid] of Object.entries(conditions)) {
+                if (valid) strength++;
+            }
+            
+            const fillBar = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            if (!fillBar || !strengthText) return;
+            
+            let percentage = (strength / 5) * 100;
+            fillBar.style.width = percentage + '%';
+            
+            if (strength <= 2) {
+                fillBar.style.backgroundColor = '#f44336';
+                strengthText.textContent = 'Слабый пароль';
+                strengthText.style.color = '#f44336';
+            } else if (strength <= 4) {
+                fillBar.style.backgroundColor = '#ff9800';
+                strengthText.textContent = 'Средний пароль';
+                strengthText.style.color = '#ff9800';
+            } else {
+                fillBar.style.backgroundColor = '#4caf50';
+                strengthText.textContent = 'Надёжный пароль';
+                strengthText.style.color = '#4caf50';
+            }
+        }
+        
         // Функция для очистки ошибок
         function clearErrors() {
             const errorMessages = document.querySelectorAll('.form-error-message');
@@ -709,7 +1006,6 @@
             
             if (!modal) return;
             
-            // Сохраняем колбэк для выполнения после успешного входа
             if (callback && typeof callback === 'function') {
                 window.pendingAuthCallback = callback;
             }
@@ -721,11 +1017,25 @@
                 loginForm.style.display = 'block';
                 registerForm.style.display = 'none';
                 loginForm.reset();
+                
+                // Скрываем индикатор пароля
+                const strengthContainer = document.getElementById('passwordStrengthContainer');
+                if (strengthContainer) strengthContainer.style.display = 'none';
             } else {
                 title.textContent = 'Регистрация';
                 loginForm.style.display = 'none';
                 registerForm.style.display = 'block';
                 registerForm.reset();
+                
+                // Сбрасываем индикатор пароля
+                const passwordField = document.getElementById('registerPassword');
+                if (passwordField) {
+                    checkPasswordStrength('');
+                }
+                
+                // Показываем индикатор пароля
+                const strengthContainer = document.getElementById('passwordStrengthContainer');
+                if (strengthContainer) strengthContainer.style.display = 'block';
             }
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -759,7 +1069,6 @@
             const shouldOpen = localStorage.getItem('openReviewAfterLogin');
             if (shouldOpen === 'true') {
                 localStorage.removeItem('openReviewAfterLogin');
-                // Даём странице время на полную загрузку
                 setTimeout(function() {
                     if (typeof openReviewModalAfterAuth === 'function') {
                         openReviewModalAfterAuth();
@@ -771,6 +1080,15 @@
         // AJAX-отправка формы входа
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const passwordField = document.getElementById('registerPassword');
+            
+            // Индикатор сложности пароля
+            if (passwordField) {
+                passwordField.addEventListener('input', function(e) {
+                    checkPasswordStrength(e.target.value);
+                });
+            }
             
             if (loginForm) {
                 loginForm.addEventListener('submit', function(e) {
@@ -793,7 +1111,6 @@
                     .then(response => {
                         if (response.redirected) {
                             window.closeModal();
-                            // Если есть колбэк, сохраняем его в localStorage
                             if (window.pendingAuthCallback) {
                                 localStorage.setItem('pendingCallback', 'true');
                                 window.pendingAuthCallback = null;
@@ -823,11 +1140,6 @@
                     });
                 });
             }
-        });
-        
-        // AJAX-отправка формы регистрации
-        document.addEventListener('DOMContentLoaded', function() {
-            const registerForm = document.getElementById('registerForm');
             
             if (registerForm) {
                 registerForm.addEventListener('submit', function(e) {
@@ -854,7 +1166,6 @@
                             if (typeof showNotification === 'function') {
                                 showNotification(data.message);
                             }
-                            // Если есть колбэк, сохраняем его в localStorage
                             if (window.pendingAuthCallback) {
                                 localStorage.setItem('pendingCallback', 'true');
                                 window.pendingAuthCallback = null;
@@ -906,6 +1217,15 @@
                             counter.textContent = data.count;
                             counter.style.display = data.count > 0 ? 'flex' : 'none';
                         }
+                        const floatingCounter = document.getElementById('floatingCartCounter');
+                        if (floatingCounter) {
+                            if (data.count > 0) {
+                                floatingCounter.textContent = data.count;
+                                floatingCounter.style.display = 'flex';
+                            } else {
+                                floatingCounter.style.display = 'none';
+                            }
+                        }
                     }
                 })
                 .catch(err => console.log('Ошибка обновления счетчика корзины'));
@@ -933,156 +1253,150 @@
                 }
             }
             
-            // Проверяем, нужно ли открыть окно отзыва после перезагрузки
             checkPendingReview();
         });
     </script>
     
-        <!-- Баннер cookies -->
-        <div id="cookieBanner" class="cookie-banner" style="display: none;">
-            <div class="cookie-container">
-                <div class="cookie-text">
-                    <p>🍪 Мы используем cookies для улучшения работы сайта, анализа трафика и персонализации. Продолжая использовать сайт, вы соглашаетесь с <a href="/privacy-policy/" target="_blank">политикой обработки данных</a>.</p>
-                </div>
-                <div class="cookie-buttons">
-                    <button id="acceptCookies" class="cookie-btn cookie-accept">Принять</button>
-                    <button id="declineCookies" class="cookie-btn cookie-decline">Отклонить</button>
-                </div>
+    <!-- Баннер cookies -->
+    <div id="cookieBanner" class="cookie-banner" style="display: none;">
+        <div class="cookie-container">
+            <div class="cookie-text">
+                <p>🍪 Мы используем cookies для улучшения работы сайта, анализа трафика и персонализации. Продолжая использовать сайт, вы соглашаетесь с <a href="/privacy-policy/" target="_blank">политикой обработки данных</a>.</p>
+            </div>
+            <div class="cookie-buttons">
+                <button id="acceptCookies" class="cookie-btn cookie-accept">Принять</button>
+                <button id="declineCookies" class="cookie-btn cookie-decline">Отклонить</button>
             </div>
         </div>
+    </div>
 
-        <style>
-        /* Стили для баннера cookies */
-        .cookie-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1a1a2e;
-            color: #eee;
-            padding: 15px 20px;
-            z-index: 10000;
-            border-top: 3px solid #B8860B;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
-            font-family: inherit;
-        }
+    <style>
+    /* Стили для баннера cookies */
+    .cookie-banner {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #1a1a2e;
+        color: #eee;
+        padding: 15px 20px;
+        z-index: 10000;
+        border-top: 3px solid #B8860B;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+        font-family: inherit;
+    }
 
+    .cookie-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .cookie-text {
+        flex: 1;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .cookie-text a {
+        color: #B8860B;
+        text-decoration: underline;
+    }
+
+    .cookie-text a:hover {
+        color: #d4a017;
+    }
+
+    .cookie-buttons {
+        display: flex;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    .cookie-btn {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .cookie-accept {
+        background: #B8860B;
+        color: white;
+    }
+
+    .cookie-accept:hover {
+        background: #9a7009;
+        transform: translateY(-2px);
+    }
+
+    .cookie-decline {
+        background: #444;
+        color: white;
+    }
+
+    .cookie-decline:hover {
+        background: #555;
+    }
+
+    @media (max-width: 768px) {
         .cookie-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            text-align: center;
         }
-
-        .cookie-text {
-            flex: 1;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        .cookie-text a {
-            color: #B8860B;
-            text-decoration: underline;
-        }
-
-        .cookie-text a:hover {
-            color: #d4a017;
-        }
-
         .cookie-buttons {
-            display: flex;
-            gap: 12px;
-            flex-shrink: 0;
+            justify-content: center;
         }
+        .cookie-text {
+            font-size: 0.8rem;
+        }
+    }
 
+    @media (max-width: 480px) {
+        .cookie-banner {
+            padding: 12px 15px;
+        }
         .cookie-btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            padding: 6px 16px;
+            font-size: 0.8rem;
         }
+    }
+    </style>
 
-        .cookie-accept {
-            background: #B8860B;
-            color: white;
+    <script>
+    // Функция для проверки согласия
+    function checkCookieConsent() {
+        const consent = localStorage.getItem('cookieConsent');
+        if (!consent) {
+            document.getElementById('cookieBanner').style.display = 'block';
         }
+    }
 
-        .cookie-accept:hover {
-            background: #9a7009;
-            transform: translateY(-2px);
-        }
+    function acceptCookies() {
+        localStorage.setItem('cookieConsent', 'accepted');
+        document.getElementById('cookieBanner').style.display = 'none';
+        console.log('Cookies accepted');
+    }
 
-        .cookie-decline {
-            background: #444;
-            color: white;
-        }
+    function declineCookies() {
+        localStorage.setItem('cookieConsent', 'declined');
+        document.getElementById('cookieBanner').style.display = 'none';
+        console.log('Cookies declined');
+    }
 
-        .cookie-decline:hover {
-            background: #555;
-        }
-
-        @media (max-width: 768px) {
-            .cookie-container {
-                flex-direction: column;
-                text-align: center;
-            }
-            .cookie-buttons {
-                justify-content: center;
-            }
-            .cookie-text {
-                font-size: 0.8rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .cookie-banner {
-                padding: 12px 15px;
-            }
-            .cookie-btn {
-                padding: 6px 16px;
-                font-size: 0.8rem;
-            }
-        }
-        </style>
-
-        <script>
-        // Функция для проверки согласия
-        function checkCookieConsent() {
-            const consent = localStorage.getItem('cookieConsent');
-            if (!consent) {
-                document.getElementById('cookieBanner').style.display = 'block';
-            }
-        }
-
-        // Функция принятия cookies
-        function acceptCookies() {
-            localStorage.setItem('cookieConsent', 'accepted');
-            document.getElementById('cookieBanner').style.display = 'none';
-            // Здесь можно включить аналитику, если добавите позже
-            console.log('Cookies accepted');
-        }
-
-        // Функция отклонения cookies
-        function declineCookies() {
-            localStorage.setItem('cookieConsent', 'declined');
-            document.getElementById('cookieBanner').style.display = 'none';
-            // Здесь можно отключить аналитику
-            console.log('Cookies declined');
-        }
-
-        // Назначаем обработчики после загрузки страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            checkCookieConsent();
-            document.getElementById('acceptCookies').addEventListener('click', acceptCookies);
-            document.getElementById('declineCookies').addEventListener('click', declineCookies);
-        });
-        </script>
+    document.addEventListener('DOMContentLoaded', function() {
+        checkCookieConsent();
+        document.getElementById('acceptCookies').addEventListener('click', acceptCookies);
+        document.getElementById('declineCookies').addEventListener('click', declineCookies);
+    });
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>

@@ -13,17 +13,45 @@
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
     <div class="table-container">
         <h3 style="padding: 15px; border-bottom: 1px solid #eee;">Информация о заказе</h3>
-        <table>
-            <tr><th>Дата заказа</th><td>{{ order.order_date|date:"d.m.Y H:i" }}</td></tr>
-            <tr><th>Клиент</th><td>{{ order.user.get_full_name|default:order.user.username }}</td></tr>
-            <tr><th>Телефон</th><td>{{ order.user.profile.phone|default:"-" }}</td></tr>
-            <tr><th>Email</th><td>{{ order.user.email }}</td></tr>
-            <tr><th>Адрес доставки</th><td>{{ order.delivery_address }}</td></tr>
-            <tr><th>Способ оплаты</th><td>{{ order.get_payment_method_display }}</td></tr>
-            <tr><th>Сумма заказа</th><td>{{ order.total_amount }} ₽</td></tr>
-            <tr><th>Стоимость доставки</th><td>{{ order.delivery_cost }} ₽</td></tr>
-            <tr><th>Итого</th><td><strong>{{ order.get_final_amount }} ₽</strong></td></tr>
-            <tr><th>Статус</th>
+        <table class="admin-table">
+            <tr>
+                <th>Дата заказа</th>
+                <td>{{ order.order_date|date:"d.m.Y H:i" }}</td>
+            </tr>
+            <tr>
+                <th>Клиент</th>
+                <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+            </tr>
+            <tr>
+                <th>Телефон</th>
+                <td>{{ order.user.profile.phone|default:"-" }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ order.user.email }}</td>
+            </tr>
+            <tr>
+                <th>Адрес доставки</th>
+                <td>{{ order.delivery_address }}</td>
+            </tr>
+            <tr>
+                <th>Способ оплаты</th>
+                <td>{{ order.get_payment_method_display }}</td>
+            </tr>
+            <tr>
+                <th>Сумма заказа (без доставки)</th>
+                <td>{{ order.get_subtotal }} ₽</td>
+            </tr>
+            <tr>
+                <th>Стоимость доставки</th>
+                <td>{{ order.delivery_cost }} ₽</td>
+            </tr>
+            <tr>
+                <th>Итого к оплате</th>
+                <td><strong>{{ order.get_final_amount }} ₽</strong></td>
+            </tr>
+            <tr>
+                <th>Статус</th>
                 <td>
                     <form method="post" style="display: inline;">
                         {% csrf_token %}
@@ -38,15 +66,23 @@
                     </form>
                 </td>
             </tr>
-            <tr><th>Комментарий</th><td>{{ order.comment|default:"-" }}</td></tr>
+            <tr>
+                <th>Комментарий</th>
+                <td>{{ order.comment|default:"-" }}</td>
+            </tr>
         </table>
     </div>
     
     <div class="table-container">
         <h3 style="padding: 15px; border-bottom: 1px solid #eee;">Состав заказа</h3>
-        <table>
+        <table class="admin-table">
             <thead>
-                <tr><th>Блюдо</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr>
+                <tr>
+                    <th>Блюдо</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Сумма</th>
+                </tr>
             </thead>
             <tbody>
                 {% for item in order.items.all %}
@@ -58,6 +94,12 @@
                 </tr>
                 {% endfor %}
             </tbody>
+            <tfoot>
+                <tr style="background: #f9f9f9; font-weight: bold;">
+                    <td colspan="3" style="text-align: right;">Итого без доставки:</td>
+                    <td>{{ order.get_subtotal }} ₽</td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 </div>

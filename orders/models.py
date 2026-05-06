@@ -77,8 +77,13 @@ class Order(models.Model):
     def __str__(self):
         return f'Заказ №{self.id} - {self.user.username}'
     
+    def get_subtotal(self):
+        """Сумма заказа без доставки (только товары)"""
+        return sum(item.get_total() for item in self.items.all())
+    
     def get_final_amount(self):
-        return self.total_amount + self.delivery_cost
+        """Итоговая сумма с доставкой"""
+        return self.get_subtotal() + self.delivery_cost
 
 class OrderItem(models.Model):
     """Товар в заказе"""
@@ -94,3 +99,7 @@ class OrderItem(models.Model):
     
     def __str__(self):
         return f'{self.dish.name} x{self.quantity}'
+    
+    def get_total(self):
+        """Сумма позиции заказа (цена * количество)"""
+        return self.price * self.quantity

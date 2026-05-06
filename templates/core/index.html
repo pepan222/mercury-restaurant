@@ -136,6 +136,73 @@
         transform: translateY(-2px);
     }
     
+    .hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 500px;
+}
+
+.slider-arrows {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 15;
+    pointer-events: none;
+}
+
+.slider-arrow {
+    width: auto;
+    height: auto;
+    background: transparent;
+    border-radius: 0;
+    backdrop-filter: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: auto;
+    color: white;
+    font-size: 48px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    line-height: 1;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+
+.slider-arrow:hover {
+    color: #B8860B;
+    transform: scale(1.2);
+    background: transparent;
+}
+    
+    /* ========== АДАПТИВНЫЙ ТЕКСТ СЛАЙДЕРА ========== */
+    .slide-content {
+        max-width: 90%;
+        margin: 0 auto;
+        padding: 0 20px;
+        text-align: center;
+    }
+    
+    .slide-content h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+    
+    .slide-content p {
+        font-size: 1.3rem;
+        margin-bottom: 1.8rem;
+    }
+    
     /* Карточки кухонь - УЛУЧШЕННАЯ АДАПТАЦИЯ */
     .cuisine-grid {
         display: grid;
@@ -365,6 +432,12 @@
         .cuisine-content h3 {
             font-size: 1.2rem;
         }
+        .slide-content h1 {
+            font-size: 2.2rem;
+        }
+        .slide-content p {
+            font-size: 1rem;
+        }
     }
     
     @media (max-width: 768px) {
@@ -438,6 +511,21 @@
             width: 32px;
             height: 32px;
             font-size: 1rem;
+        }
+        .slider-arrow {
+        font-size: 36px;
+        }
+        .slider-arrows {
+            padding: 0 12px;
+        }
+        .hero {
+            min-height: 400px;
+        }
+            .slide-content h1 {
+            font-size: 1.6rem;
+        }
+        .slide-content p {
+            font-size: 0.85rem;
         }
     }
     
@@ -530,6 +618,21 @@
             height: 25px;
             font-size: 0.8rem;
         }
+        .slider-arrow {
+        font-size: 28px;
+        }
+        .slider-arrows {
+            padding: 0 8px;
+        }
+        .hero {
+            min-height: 320px;
+        }
+        .slide-content h1 {
+            font-size: 1.3rem;
+        }
+        .slide-content p {
+            font-size: 0.75rem;
+        }
     }
     
     @media (max-width: 380px) {
@@ -565,6 +668,12 @@
         .carousel-button {
             width: 22px;
             height: 22px;
+            font-size: 0.7rem;
+        }
+        .slide-content h1 {
+            font-size: 1.1rem;
+        }
+        .slide-content p {
             font-size: 0.7rem;
         }
     }
@@ -709,6 +818,10 @@
 
 {% block content %}
 <section class="hero">
+    <div class="slider-arrows">
+        <div class="slider-arrow prev" id="sliderPrev">‹</div>
+        <div class="slider-arrow next" id="sliderNext">›</div>
+    </div>
     <div class="slide slide-1 active">
         <div class="slide-content">
             <h1>Пять кухонь мира</h1>
@@ -725,7 +838,7 @@
     </div>
     <div class="slide slide-3">
         <div class="slide-content">
-            <h1>Гастрономическое<br>путешествие</h1>
+            <h1>Гастрономическое путешествие</h1>
             <p>Атмосфера уюта и изысканная кухня</p>
             <a href="/orders/cart/" class="btn-gold" style="position: relative; z-index: 100; display: inline-block;">Заказать доставку</a>
         </div>
@@ -1129,14 +1242,19 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Слайдер
+// Слайдер с возможностью листания на телефоне и стрелками
 function initSlider() {
     const slides = document.querySelectorAll('.slide');
     const dots = document.querySelectorAll('.dot');
     let currentSlide = 0;
     let slideInterval;
+    let touchStartX = 0;
+    let touchEndX = 0;
     
     function showSlide(index) {
+        if (index < 0) index = slides.length - 1;
+        if (index >= slides.length) index = 0;
+        
         slides.forEach((slide, i) => {
             slide.classList.toggle('active', i === index);
         });
@@ -1147,8 +1265,11 @@ function initSlider() {
     }
     
     function nextSlide() {
-        let next = (currentSlide + 1) % slides.length;
-        showSlide(next);
+        showSlide(currentSlide + 1);
+    }
+    
+    function prevSlide() {
+        showSlide(currentSlide - 1);
     }
     
     function startSlider() {
@@ -1156,6 +1277,29 @@ function initSlider() {
         slideInterval = setInterval(nextSlide, 5000);
     }
     
+    // Обработчики для стрелок
+    const prevArrow = document.getElementById('sliderPrev');
+    const nextArrow = document.getElementById('sliderNext');
+    
+    if (prevArrow) {
+        prevArrow.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            prevSlide();
+            startSlider();
+        });
+    }
+    
+    if (nextArrow) {
+        nextArrow.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            nextSlide();
+            startSlider();
+        });
+    }
+    
+    // Обработчики для точек
     if (dots.length) {
         dots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
@@ -1165,6 +1309,26 @@ function initSlider() {
         });
     }
     
+    // Обработчики для свайпов (касаний) на телефоне
+    const hero = document.querySelector('.hero');
+    if (hero) {
+        hero.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        hero.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) {
+                nextSlide();
+                startSlider();
+            } else if (touchEndX > touchStartX + swipeThreshold) {
+                prevSlide();
+                startSlider();
+            }
+        }, { passive: true });
+    }
+    
     if (slides.length > 1) {
         startSlider();
     }
@@ -1172,7 +1336,6 @@ function initSlider() {
 
 // Модальное окно отзыва
 function openReviewModal() {
-    // Проверяем, авторизован ли пользователь
     fetch('/orders/api/cart/count/')
         .then(response => {
             if (response.redirected && response.url.includes('/login/')) return false;
@@ -1181,11 +1344,9 @@ function openReviewModal() {
         })
         .then(isAuthenticated => {
             if (!isAuthenticated) {
-                // Устанавливаем флаг, что после входа нужно открыть окно отзыва
                 if (typeof window.setPendingReview === 'function') {
                     window.setPendingReview();
                 }
-                // Открываем окно авторизации
                 if (typeof window.openLoginModal === 'function') {
                     window.openLoginModal();
                 } else {
@@ -1193,8 +1354,6 @@ function openReviewModal() {
                 }
                 return;
             }
-            
-            // Пользователь авторизован — открываем окно отзыва
             openReviewModalAfterAuth();
         })
         .catch(() => {
@@ -1209,7 +1368,6 @@ function openReviewModal() {
         });
 }
 
-// Функция для открытия окна отзыва (без проверки авторизации)
 function openReviewModalAfterAuth() {
     const modal = document.getElementById('reviewModal');
     if (modal) {
@@ -1534,35 +1692,6 @@ window.openDishModal = function(dishId) {
     if (overlay) overlay.onclick = () => modal.classList.remove('active');
     if (closeBtn) closeBtn.onclick = () => modal.classList.remove('active');
 };
-
-// Принудительная проверка ссылок в слайдере
-document.addEventListener('DOMContentLoaded', function() {
-    // Добавляем обработчики для кнопок слайдера, чтобы убедиться, что они ведут куда нужно
-    const btnBooking = document.querySelector('.slide-1 .btn-gold');
-    const btnMenu = document.querySelector('.slide-2 .btn-gold');
-    const btnCart = document.querySelector('.slide-3 .btn-gold');
-    
-    if (btnBooking) {
-        console.log('Кнопка бронирования:', btnBooking.getAttribute('href'));
-        btnBooking.addEventListener('click', function(e) {
-            console.log('Нажата кнопка бронирования, переход на:', this.getAttribute('href'));
-        });
-    }
-    
-    if (btnMenu) {
-        console.log('Кнопка меню:', btnMenu.getAttribute('href'));
-        btnMenu.addEventListener('click', function(e) {
-            console.log('Нажата кнопка меню, переход на:', this.getAttribute('href'));
-        });
-    }
-    
-    if (btnCart) {
-        console.log('Кнопка корзины:', btnCart.getAttribute('href'));
-        btnCart.addEventListener('click', function(e) {
-            console.log('Нажата кнопка корзины, переход на:', this.getAttribute('href'));
-        });
-    }
-});
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
