@@ -1443,7 +1443,7 @@ function initReviewForm() {
             submitBtn.textContent = originalText;
             
             if (data.status === 'success') {
-                showNotification('Спасибо за отзыв!');
+                showNotification('Спасибо за отзыв! Он будет опубликован после проверки администратором.');
                 closeReviewModal();
                 form.reset();
                 document.getElementById('rating-input').value = 0;
@@ -1452,10 +1452,7 @@ function initReviewForm() {
                     star.classList.remove('active');
                     star.textContent = '☆';
                 });
-                
-                if (data.review) {
-                    addReviewToCarousel(data.review);
-                }
+                // Отзыв НЕ добавляется в карусель мгновенно — только после модерации
             } else {
                 showNotification(data.message || 'Ошибка при отправке отзыва', 'error');
             }

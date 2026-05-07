@@ -12,7 +12,7 @@ def home(request):
     categories = Category.objects.all()[:5]
     all_reviews = list(Review.objects.filter(is_published=True).order_by('-created_at'))
     
-    # Популярные блюда – исправлено!
+    # Популярные блюда
     featured_dishes = Dish.objects.filter(is_available=True).annotate(
         total_ordered=Coalesce(Sum('orderitem__quantity'), Value(0))
     ).order_by('-total_ordered', '-id')[:4]
@@ -37,35 +37,15 @@ def contacts(request):
     """Страница контактов"""
     return render(request, 'core/contacts.html')
 
+
 def privacy_policy(request):
     """Страница политики конфиденциальности"""
     return render(request, 'privacy-policy.html')
 
 
-# def menu_page(request):
-#     """Страница меню"""
-#     # Убираем filter(is_active=True) - такого поля нет в модели
-#     # Просто получаем все категории
-#     # categories = Category.objects.all()
-#     # context = {
-#     #     'categories': categories,
-#     # }
-    # return render(request, 'menu/menu_list.html')
-
-
-# def booking_page(request):
-#     """Страница бронирования"""
-#     return render(request, 'bookings/booking.html')
-
-
-# def cart_page(request):
-#     """Страница корзины"""
-#     return render(request, 'orders/cart.html')
-
-
 @login_required
 def create_review_ajax(request):
-    """Создание отзыва через AJAX - БЕЗ МОДЕРАЦИИ, сразу публикуется"""
+    """Создание отзыва через AJAX - отправляется на модерацию"""
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
@@ -78,17 +58,18 @@ def create_review_ajax(request):
             if rating < 1 or rating > 5:
                 return JsonResponse({'status': 'error', 'message': 'Оценка должна быть от 1 до 5'})
             
+            # ОТПРАВЛЯЕМ НА МОДЕРАЦИЮ: is_published=False, is_moderated=False
             review = Review.objects.create(
                 user=request.user,
                 rating=rating,
                 comment=comment,
-                is_published=True,
-                is_moderated=True
+                is_published=False,
+                is_moderated=False
             )
             
             return JsonResponse({
-                'status': 'success', 
-                'message': 'Спасибо за отзыв!',
+                'status': 'success',
+                'message': 'Спасибо за отзыв! Он будет опубликован после проверки администратором.',
                 'review': {
                     'username': request.user.get_full_name() or request.user.username,
                     'rating': rating,
